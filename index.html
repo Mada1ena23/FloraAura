@@ -14,7 +14,7 @@
   <link rel="apple-touch-icon" href="/assets/images/icons/icon-192x192.png">
 
   <!-- Estilos -->
-  <link rel="stylesheet" href="/assets/css/styles.css">
+  <link rel="stylesheet" href="./assets/css/styles.css">
 </head>
 <body>
   <!-- Cabeçalho Principal -->
@@ -27,9 +27,9 @@
   </header>
 
   <!-- Navegação Principal -->
-  <nav class="app-nav">
-    <button class="nav-btn active" data-target="meu-jardim">Meu Jardim</button>
-    <button class="nav-btn" data-target="catalogo">Catálogo</button>
+  <nav class="app-nav" aria-label="Navegação principal">
+    <button class="nav-btn active" data-target="meu-jardim" aria-controls="meu-jardim" aria-current="page">Meu Jardim</button>
+    <button class="nav-btn" data-target="catalogo" aria-controls="catalogo">Catálogo</button>
     <a href="/pages/sobre.html" class="nav-link">Sobre</a>
   </nav>
 
@@ -37,21 +37,85 @@
   <main class="app-content">
     <!-- Secção: O Meu Jardim -->
     <section id="meu-jardim" class="tab-content active">
+      <section class="welcome-panel" aria-labelledby="welcome-title">
+        <div class="welcome-copy">
+          <p class="eyebrow">O teu espaço verde</p>
+          <h2 id="welcome-title">Um jardim feliz começa com pequenos cuidados.</h2>
+          <p>Reúne as tuas plantas num só lugar e acompanha o que cada uma precisa para crescer.</p>
+          <div class="welcome-actions">
+            <button id="hero-add-plant" class="btn-primary" type="button">Adicionar primeira planta</button>
+            <button class="btn-text nav-btn" type="button" data-target="catalogo" aria-controls="catalogo">Explorar espécies <span aria-hidden="true">→</span></button>
+          </div>
+        </div>
+        <div class="welcome-art" aria-hidden="true">
+          <span class="art-sun"></span>
+          <span class="art-leaf art-leaf-one"></span>
+          <span class="art-leaf art-leaf-two"></span>
+          <span class="art-pot"></span>
+          <span class="art-ground"></span>
+        </div>
+        <div class="welcome-stats" aria-label="Resumo do jardim">
+          <div class="stat-item">
+            <span class="stat-value" id="plant-count" aria-live="polite">0</span>
+            <span class="stat-label">plantas no jardim</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" id="species-count" aria-live="polite">0</span>
+            <span class="stat-label">espécies identificadas</span>
+          </div>
+          <p class="stat-note"><span aria-hidden="true">✦</span> Cada planta torna o teu espaço mais especial.</p>
+        </div>
+      </section>
+
       <div class="section-header">
-        <h2>As Minhas Plantas</h2>
-        <button id="btn-add-plant" class="btn-primary">+ Adicionar Planta</button>
+        <div>
+          <p class="eyebrow">Crescer com cuidado</p>
+          <h2>As Minhas Plantas</h2>
+        </div>
+        <button id="btn-add-plant" class="btn-primary" type="button"><span aria-hidden="true">＋</span> Adicionar Planta</button>
       </div>
-      <div id="user-plants-grid" class="plants-grid">
+      <div id="user-plants-grid" class="plants-grid" aria-live="polite">
         <p class="empty-state">Ainda não adicionaste nenhuma planta ao teu jardim. Clica no botão acima para começar!</p>
       </div>
+
+      <section class="care-section" aria-labelledby="care-title">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">Um pouco de inspiração</p>
+            <h2 id="care-title">Pequenos gestos, grandes folhas</h2>
+          </div>
+        </div>
+        <div class="care-grid">
+          <article class="care-card">
+            <span class="care-icon" aria-hidden="true">◌</span>
+            <h3>Rega consciente</h3>
+            <p>Confirma a humidade da terra antes de regar. Cada espécie tem o seu próprio ritmo.</p>
+          </article>
+          <article class="care-card">
+            <span class="care-icon" aria-hidden="true">☼</span>
+            <h3>Luz no lugar certo</h3>
+            <p>Observa como a luz muda ao longo do dia e encontra o cantinho ideal para cada planta.</p>
+          </article>
+          <article class="care-card">
+            <span class="care-icon" aria-hidden="true">✳</span>
+            <h3>Tempo para observar</h3>
+            <p>Folhas novas e pequenas mudanças são sinais valiosos de como a tua planta se sente.</p>
+          </article>
+        </div>
+      </section>
     </section>
 
     <!-- Secção: Catálogo de Espécies -->
-    <section id="catalogo" class="tab-content">
-      <h2>Explorar Espécies</h2>
-      <div class="search-bar">
-        <input type="text" id="search-input" placeholder="Pesquisar por nome ou espécie...">
+    <section id="catalogo" class="tab-content" aria-labelledby="catalog-title">
+      <div class="catalog-intro">
+        <p class="eyebrow">Encontra a tua próxima companheira verde</p>
+        <h2 id="catalog-title">Explorar Espécies</h2>
+        <p>Descobre novas plantas e aprende mais sobre os seus cuidados.</p>
       </div>
+      <label class="search-bar" for="search-input">
+        <span aria-hidden="true">⌕</span>
+        <input type="search" id="search-input" placeholder="Pesquisar por nome ou espécie..." autocomplete="off">
+      </label>
       <div id="catalog-grid" class="plants-grid">
         <!-- Plantas carregadas via JavaScript -->
       </div>
@@ -61,7 +125,9 @@
   <!-- Modal / Formulário para Registar Nova Planta -->
   <dialog id="modal-add-plant" class="app-modal">
     <form id="form-plant" method="dialog">
+      <p class="eyebrow">O teu jardim</p>
       <h3>Registar Nova Planta</h3>
+      <p class="modal-description">Adiciona uma planta e guarda as informações essenciais para cuidares dela.</p>
       
       <label for="plant-name">Nome da Planta:</label>
       <input type="text" id="plant-name" required placeholder="Ex: Monstera Deliciosa">
@@ -91,6 +157,11 @@
       </div>
     </form>
   </dialog>
+
+  <footer class="app-footer">
+    <span class="footer-mark" aria-hidden="true">✿</span>
+    <p>FloraAura <span aria-hidden="true">·</span> Cultiva um pouco de verde todos os dias.</p>
+  </footer>
 
   <!-- JavaScript Modular -->
   <script type="module" src="/assets/js/app.js"></script>

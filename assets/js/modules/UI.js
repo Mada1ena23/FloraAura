@@ -1,19 +1,43 @@
 import { getAllPlants, addPlant } from '../db.js';
 
 export function setupNavigation() {
-  const navBtns = document.querySelectorAll('.nav-btn');
+  const navBtns = document.querySelectorAll('.app-nav .nav-btn');
+  const navActions = document.querySelectorAll('.nav-btn[data-target]');
   const tabs = document.querySelectorAll('.tab-content');
 
-  navBtns.forEach((btn) => {
+  navActions.forEach((btn) => {
     btn.addEventListener('click', () => {
       navBtns.forEach((b) => b.classList.remove('active'));
       tabs.forEach((t) => t.classList.remove('active'));
 
-      btn.classList.add('active');
       const targetId = btn.getAttribute('data-target');
-      document.getElementById(targetId)?.classList.add('active');
+      const targetTab = document.getElementById(targetId);
+      const targetNavBtn = document.querySelector(`.app-nav .nav-btn[data-target="${targetId}"]`);
+
+      targetTab?.classList.add('active');
+      targetNavBtn?.classList.add('active');
+      navBtns.forEach((navBtn) => {
+        if (navBtn === targetNavBtn) {
+          navBtn.setAttribute('aria-current', 'page');
+        } else {
+          navBtn.removeAttribute('aria-current');
+        }
+      });
     });
   });
+}
+
+function updateGardenSummary(plants) {
+  const plantCount = document.getElementById('plant-count');
+  const speciesCount = document.getElementById('species-count');
+  const species = new Set(
+    plants
+      .map((plant) => plant.species?.trim().toLocaleLowerCase())
+      .filter(Boolean)
+  );
+
+  if (plantCount) plantCount.textContent = String(plants.length);
+  if (speciesCount) speciesCount.textContent = String(species.size);
 }
 
 export async function renderUserPlants() {
@@ -22,6 +46,7 @@ export async function renderUserPlants() {
 
   try {
     const plants = await getAllPlants();
+    updateGardenSummary(plants);
     if (plants.length === 0) {
       container.innerHTML = `<p class="empty-state">Ainda não adicionaste nenhuma planta ao teu jardim.</p>`;
       return;
@@ -43,10 +68,12 @@ export async function renderUserPlants() {
 export function setupModal() {
   const modal = document.getElementById('modal-add-plant');
   const btnOpen = document.getElementById('btn-add-plant');
+  const heroBtnOpen = document.getElementById('hero-add-plant');
   const btnCancel = document.getElementById('btn-cancel');
   const form = document.getElementById('form-plant');
 
   btnOpen?.addEventListener('click', () => modal.showModal());
+  heroBtnOpen?.addEventListener('click', () => modal.showModal());
   btnCancel?.addEventListener('click', () => modal.close());
 
   form?.addEventListener('submit', async (e) => {
