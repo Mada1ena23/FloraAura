@@ -4,15 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Offline - FloraAura</title>
+  <meta name="theme-color" content="#315c45">
   <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
 <body>
-  <main class="app-content" style="text-align: center; margin-top: 3rem;">
-    <h2>🌿 Estás em modo Offline</h2>
-    <p style="margin-top: 1rem; color: var(--text-muted);">
-      Não tens ligação à Internet no momento. Contudo, podes continuar a consultar o teu jardim e os dados guardados localmente!
-    </p>
-    <a href="/index.html" class="btn-primary" style="display:inline-block; margin-top:1.5rem; text-decoration:none;">Ir para o Meu Jardim</a>
+  <main class="offline-page">
+    <section class="offline-card" aria-labelledby="offline-title">
+      <div class="offline-icon" aria-hidden="true">✿</div>
+      <p class="eyebrow">A ligação pode esperar</p>
+      <h1 id="offline-title">O teu jardim continua por perto.</h1>
+      <p>Estás sem ligação à Internet. Podes voltar ao teu jardim e consultar os dados que já estão guardados neste dispositivo.</p>
+      <a href="../index.html" class="btn-primary">Ir para o meu jardim <span aria-hidden="true">→</span></a>
+    </section>
   </main>
 </body>
 </html>

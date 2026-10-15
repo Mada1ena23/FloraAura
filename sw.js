@@ -1,10 +1,13 @@
-const CACHE_NAME = 'floraura-v1.0.2';
+const CACHE_NAME = 'floraura-v1.0.3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/pages/sobre.html',
   '/pages/offline.html',
   '/assets/css/styles.css',
+  '/assets/images/logo.svg',
+  '/assets/images/icons/icon-192x192.png',
+  '/assets/images/icons/icon-512x512.png',
   '/assets/js/app.js',
   '/assets/js/db.js',
   '/assets/js/modules/api.js',
