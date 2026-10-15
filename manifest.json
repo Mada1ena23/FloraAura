@@ -1,0 +1,23 @@
+{
+  "short_name": "FloraAura",
+  "name": "FloraAura - Gestão e Cuidados de Plantas",
+  "description": "Aplicação para registar, consultar e acompanhar cuidados de plantas como rega e luminosidade.",
+  "icons": [
+    {
+      "src": "/assets/images/icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/assets/images/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/index.html",
+  "background_color": "#f4f8f5",
+  "theme_color": "#2e7d32",
+  "display": "standalone",
+  "orientation": "portrait-primary"
+}
