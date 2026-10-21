@@ -40,6 +40,70 @@ function updateGardenSummary(plants) {
   if (speciesCount) speciesCount.textContent = String(species.size);
 }
 
+function getPlantStatusState(plant) {
+  const today = getLocalDateString(new Date());
+  const nextWateringDate = plant.nextWatering ? new Date(`${plant.nextWatering}T12:00:00`) : null;
+  const daysUntil = nextWateringDate ? Math.round((nextWateringDate - new Date(`${today}T12:00:00`)) / 86400000) : null;
+
+  if (daysUntil !== null && daysUntil <= 0) {
+    return { label: 'Urgente', className: 'is-urgent' };
+  }
+
+  if (daysUntil !== null && daysUntil <= 3) {
+    return { label: 'Atenção', className: 'is-attention' };
+  }
+
+  return { label: 'Saudável', className: 'is-healthy' };
+}
+
+function createPlantStatusMeta(plant) {
+  const status = document.createElement('div');
+  status.className = 'plant-status';
+
+  const indicator = document.createElement('span');
+  indicator.className = 'status-icon';
+  indicator.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c2 3 5.5 5.8 5.5 10a5.5 5.5 0 1 1-11 0c0-4.2 3.5-7 5.5-10Z"/></svg>';
+
+  const label = document.createElement('span');
+  const state = getPlantStatusState(plant);
+  label.textContent = state.label;
+  status.classList.add(state.className);
+  status.append(indicator, label);
+  return status;
+}
+
+function getPlantPhotoUrl(plant) {
+  const speciesKey = String(plant?.species || plant?.name || 'planta').trim().toLowerCase();
+  const photoMap = {
+    'monstera deliciosa': 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=900&q=80',
+    'costela-de-ão': 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=900&q=80',
+    'chlorophytum comosum': 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80',
+    'dracaena trifasciata': 'https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80',
+    'epipremnum aureum': 'https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80',
+    'spathiphyllum wallisii': 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=900&q=80',
+    'aloe vera': 'https://images.unsplash.com/photo-1525310072745-f49212b5ac6d?auto=format&fit=crop&w=900&q=80',
+    'ficus elastica': 'https://images.unsplash.com/photo-1463320726281-696a485928c7?auto=format&fit=crop&w=900&q=80',
+    'goeppertia orbifolia': 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=900&q=80',
+    'zamioculcas zamiifolia': 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=900&q=80',
+    'pilea peperomioides': 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=900&q=80'
+  };
+
+  return photoMap[speciesKey] || 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=900&q=80';
+}
+
+function createPlantMetaIcon(iconName) {
+  const icons = {
+    water: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8c2.8 3.2 7 6.6 7 11.2A7 7 0 1 1 5 14c0-4.6 4.2-8 7-11.2Z"/><path d="M12 10v4.5"/><path d="M9.8 13.3h4.4"/></svg>',
+    sun: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M21.5 12h-2.2M4.7 12H2.5M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6M18.4 18.4l-1.6-1.6M7.2 7.2 5.6 5.6"/></svg>',
+    health: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.2c5.1-3.4 8.5-6.2 8.5-10a4.2 4.2 0 0 0-7.3-2.9L12 8.1l-1.2-1.8A4.2 4.2 0 0 0 3.5 10.2c0 3.8 3.4 6.6 8.5 10Z"/></svg>'
+  };
+
+  const wrapper = document.createElement('span');
+  wrapper.className = 'meta-icon';
+  wrapper.innerHTML = icons[iconName] || icons.health;
+  return wrapper;
+}
+
 function createCareRoutines(plant, card) {
   const section = document.createElement('section');
   section.className = 'plant-routines';
@@ -203,41 +267,81 @@ function createPlantCard(plant) {
   card.className = 'plant-card';
   card.dataset.plantId = String(plant.id);
 
-  const title = document.createElement('h3');
-  title.textContent = String(plant.name ?? 'Planta sem nome');
-  card.append(title);
+  const cover = document.createElement('div');
+  cover.className = 'plant-cover';
 
-  const details = [
-    ['Espécie:', plant.species || 'Por identificar'],
-    ['💧 Rega:', plant.water || 'Não indicada'],
-    ['☀️ Luminosidade:', plant.light || 'Não indicada']
-  ];
+  const photo = document.createElement('div');
+  photo.className = 'plant-photo';
+  photo.setAttribute('aria-hidden', 'true');
+  photo.style.backgroundImage = `linear-gradient(180deg, rgba(26, 42, 34, 0.2), rgba(12, 25, 21, 0.38)), url("${getPlantPhotoUrl(plant)}")`;
+  photo.style.backgroundSize = 'cover';
+  photo.style.backgroundPosition = 'center';
 
-  details.forEach(([label, value]) => {
-    const line = document.createElement('p');
-    line.className = 'plant-meta';
-    const strong = document.createElement('strong');
-    strong.textContent = label;
-    line.append(strong, ` ${String(value)}`);
-    card.append(line);
-  });
+  const leafOne = document.createElement('span');
+  leafOne.className = 'plant-leaf leaf-one';
+  const leafTwo = document.createElement('span');
+  leafTwo.className = 'plant-leaf leaf-two';
+  const leafThree = document.createElement('span');
+  leafThree.className = 'plant-leaf leaf-three';
 
-  const nextWatering = document.createElement('p');
-  nextWatering.className = 'plant-care-date';
+  const state = getPlantStatusState(plant);
+  const badge = document.createElement('span');
+  badge.className = `plant-cover-badge ${state.className}`;
+  badge.textContent = state.label;
+
+  const nameWrap = document.createElement('div');
+  nameWrap.className = 'plant-cover-copy';
+  const name = document.createElement('h3');
+  name.textContent = String(plant.name ?? 'Planta sem nome');
+  const species = document.createElement('p');
+  species.textContent = plant.species || 'Espécie por identificar';
+  nameWrap.append(name, species);
+
+  photo.append(leafOne, leafTwo, leafThree);
+  cover.append(photo, badge, nameWrap);
+  card.append(cover);
+
+  const summary = document.createElement('div');
+  summary.className = 'plant-summary';
+
+  const nextWatering = document.createElement('div');
+  nextWatering.className = 'plant-card-meta';
+  const nextIcon = createPlantMetaIcon('water');
+  const nextText = document.createElement('span');
   if (plant.nextWatering) {
     const today = getLocalDateString(new Date());
     const daysUntilWatering = Math.round(
       (new Date(`${plant.nextWatering}T12:00:00`) - new Date(`${today}T12:00:00`)) / 86400000
     );
+    nextText.textContent = `${daysUntilWatering < 0 ? 'Atrasada' : daysUntilWatering === 0 ? 'Hoje' : 'Próxima'}: ${formatCareDate(plant.nextWatering)}`;
     if (daysUntilWatering < 0) nextWatering.classList.add('is-overdue');
     if (daysUntilWatering === 0) nextWatering.classList.add('is-due');
-    nextWatering.textContent = `${daysUntilWatering < 0 ? 'Rega atrasada' : daysUntilWatering === 0 ? 'Regar hoje' : 'Próxima rega'}: ${formatCareDate(plant.nextWatering)}`;
   } else if (plant.lastWatered) {
-    nextWatering.textContent = `Última rega: ${formatCareDate(plant.lastWatered)}`;
+    nextText.textContent = `Última rega: ${formatCareDate(plant.lastWatered)}`;
   } else {
-    nextWatering.textContent = 'Sem regas registadas.';
+    nextText.textContent = 'Sem regas registadas';
   }
-  card.append(nextWatering);
+  nextWatering.append(nextIcon, nextText);
+
+  const lightNeed = document.createElement('div');
+  lightNeed.className = 'plant-card-meta';
+  const lightIcon = createPlantMetaIcon('sun');
+  const lightText = document.createElement('span');
+  lightText.textContent = plant.light || 'Luz não indicada';
+  lightNeed.append(lightIcon, lightText);
+
+  const detailsButton = document.createElement('button');
+  detailsButton.type = 'button';
+  detailsButton.className = 'btn-secondary btn-details';
+  detailsButton.textContent = 'Ver ou editar detalhes';
+  detailsButton.setAttribute('aria-expanded', 'false');
+
+  summary.append(nextWatering, lightNeed, detailsButton);
+  card.append(summary);
+
+  const detailsPanel = document.createElement('div');
+  detailsPanel.className = 'plant-card-details';
+  detailsPanel.hidden = true;
 
   const dateLabel = document.createElement('label');
   dateLabel.className = 'plant-date-label';
@@ -246,7 +350,7 @@ function createPlantCard(plant) {
   dateInput.className = 'plant-date-input';
   dateInput.value = plant.nextWatering || '';
   dateInput.setAttribute('aria-label', `Próxima rega para ${String(plant.name ?? 'esta planta')}`);
-  dateLabel.append('Agendar data', dateInput);
+  dateLabel.append('Agendar rega', dateInput);
 
   const saveDateButton = document.createElement('button');
   saveDateButton.type = 'button';
@@ -267,7 +371,6 @@ function createPlantCard(plant) {
       saveDateButton.disabled = false;
     }
   });
-  card.append(dateLabel, saveDateButton);
 
   const waterButton = document.createElement('button');
   waterButton.type = 'button';
@@ -300,9 +403,6 @@ function createPlantCard(plant) {
       waterButton.disabled = false;
     }
   });
-  card.append(waterButton);
-
-  card.append(createCareRoutines(plant, card));
 
   const deleteButton = document.createElement('button');
   deleteButton.type = 'button';
@@ -328,7 +428,16 @@ function createPlantCard(plant) {
       deleteButton.disabled = false;
     }
   });
-  card.append(deleteButton);
+
+  detailsButton.addEventListener('click', () => {
+    const shouldShow = detailsPanel.hidden;
+    detailsPanel.hidden = !shouldShow;
+    detailsButton.textContent = shouldShow ? 'Ocultar detalhes' : 'Ver ou editar detalhes';
+    detailsButton.setAttribute('aria-expanded', String(shouldShow));
+  });
+
+  detailsPanel.append(dateLabel, saveDateButton, waterButton, createCareRoutines(plant, card), deleteButton);
+  card.append(detailsPanel);
 
   return card;
 }
