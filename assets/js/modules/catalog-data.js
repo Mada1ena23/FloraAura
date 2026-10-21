@@ -8,6 +8,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'indirect',
     water: 'Rega quando os primeiros 2 a 3 cm do substrato estiverem secos.',
     waterCategory: 'moderate',
+    soil: 'Substrato arejado e bem drenado, próprio para plantas tropicais.',
     care: 'Gosta de ambiente luminoso e quente. Limpa as folhas e deixa a água escorrer bem pelo vaso.',
     petNote: 'Pode ser tóxica se ingerida por animais de companhia.'
   },
@@ -20,6 +21,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'shade',
     water: 'Rega moderada, depois de a superfície do substrato começar a secar.',
     waterCategory: 'moderate',
+    soil: 'Substrato universal leve e bem drenado.',
     care: 'Evita deixar o vaso permanentemente encharcado. As pontas castanhas podem indicar água ou ar demasiado seco.',
     petNote: 'É geralmente considerada não tóxica para cães e gatos, mas evita a ingestão.'
   },
@@ -32,6 +34,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'shade',
     water: 'Deixa o substrato secar completamente entre regas.',
     waterCategory: 'low',
+    soil: 'Mistura para suculentas, mineral e de drenagem rápida.',
     care: 'É sensível ao excesso de água. Usa um vaso com drenagem e reduz a rega durante o tempo frio.',
     petNote: 'Pode ser tóxica se ingerida por animais de companhia.'
   },
@@ -44,6 +47,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'indirect',
     water: 'Rega quando a camada superior do substrato estiver seca.',
     waterCategory: 'moderate',
+    soil: 'Substrato arejado e bem drenado para plantas de interior.',
     care: 'Pode ser conduzida por um suporte ou deixada pendente. A falta de luz pode reduzir a variação de cor das folhas.',
     petNote: 'Pode ser tóxica se ingerida por animais de companhia.'
   },
@@ -56,6 +60,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'shade',
     water: 'Mantém o substrato ligeiramente húmido, sem água acumulada no prato.',
     waterCategory: 'frequent',
+    soil: 'Substrato rico, leve e capaz de reter alguma humidade sem ficar encharcado.',
     care: 'Observa as folhas e confirma a humidade do substrato. A frequência varia com a temperatura e a estação.',
     petNote: 'Pode causar irritação se ingerida por animais de companhia.'
   },
@@ -68,6 +73,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'bright',
     water: 'Rega pouco frequente; espera que o substrato seque completamente.',
     waterCategory: 'low',
+    soil: 'Mistura mineral para cactos e suculentas, com drenagem rápida.',
     care: 'Usa substrato para suculentas e um vaso com drenagem. O excesso de água pode danificar as raízes.',
     petNote: 'Pode ser tóxica se ingerida por animais de companhia.'
   },
@@ -80,6 +86,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'bright',
     water: 'Rega depois de a camada superior do substrato secar.',
     waterCategory: 'moderate',
+    soil: 'Substrato universal fértil e bem drenado.',
     care: 'Roda o vaso de vez em quando para favorecer um crescimento equilibrado e limpa as folhas com um pano húmido.',
     petNote: 'A seiva pode irritar; mantém a planta fora do alcance de crianças e animais.'
   },
@@ -92,6 +99,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'indirect',
     water: 'Mantém o substrato ligeiramente húmido, sem o encharcar.',
     waterCategory: 'frequent',
+    soil: 'Substrato leve, arejado e com boa retenção de humidade.',
     care: 'Prefere humidade ambiente moderada a elevada. As necessidades podem variar com a qualidade da água e a estação.',
     petNote: 'É geralmente considerada não tóxica para cães e gatos, mas evita a ingestão.'
   },
@@ -104,6 +112,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'shade',
     water: 'Rega pouco frequente e deixa o substrato secar entre regas.',
     waterCategory: 'low',
+    soil: 'Substrato para plantas de interior, solto e muito bem drenado.',
     care: 'Armazena água nos rizomas e é sensível ao excesso de rega. Usa um vaso com boa drenagem.',
     petNote: 'Pode causar irritação se ingerida por pessoas ou animais de companhia.'
   },
@@ -116,6 +125,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'indirect',
     water: 'Rega quando a camada superior do substrato começar a secar.',
     waterCategory: 'moderate',
+    soil: 'Substrato universal leve e bem drenado.',
     care: 'Evita deixar água acumulada no prato e remove folhas secas.',
     petNote: 'É geralmente considerada não tóxica para cães e gatos.'
   },
@@ -128,6 +138,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'indirect',
     water: 'Deixa a superfície do substrato secar antes de voltar a regar.',
     waterCategory: 'low',
+    soil: 'Substrato poroso e bem drenado, com uma mistura mineral.',
     care: 'As folhas armazenam alguma água. Um substrato leve e bem drenado ajuda a evitar o apodrecimento das raízes.',
     petNote: 'É geralmente considerada não tóxica para cães e gatos.'
   },
@@ -140,6 +151,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'indirect',
     water: 'Rega quando os primeiros centímetros do substrato estiverem secos.',
     waterCategory: 'moderate',
+    soil: 'Substrato arejado e bem drenado para plantas de interior.',
     care: 'Pode ser conduzido por um suporte ou cultivado num vaso suspenso. Evita encharcar as raízes.',
     petNote: 'Pode ser tóxico se ingerido por pessoas ou animais de companhia.'
   },
@@ -152,6 +164,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'shade',
     water: 'Mantém o substrato ligeiramente húmido, sem o encharcar.',
     waterCategory: 'frequent',
+    soil: 'Substrato solto e ligeiramente ácido, que retenha humidade sem encharcar.',
     care: 'Prefere humidade ambiente moderada e não aprecia correntes de ar seco.',
     petNote: 'É geralmente considerada não tóxica para cães e gatos.'
   },
@@ -164,6 +177,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'bright',
     water: 'Rega quando a superfície do substrato começar a secar.',
     waterCategory: 'moderate',
+    soil: 'Substrato universal fértil, ligeiramente ácido e bem drenado.',
     care: 'Gosta de ambiente luminoso e de alguma humidade. Não deixes as raízes permanentemente encharcadas.',
     petNote: 'É geralmente considerada não tóxica para cães e gatos.'
   },
@@ -176,6 +190,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'bright',
     water: 'Rega pouco frequente e deixa o substrato secar completamente entre regas.',
     waterCategory: 'low',
+    soil: 'Mistura mineral para suculentas, muito bem drenada.',
     care: 'A base engrossada armazena água. Usa um vaso com drenagem e evita o excesso de rega.',
     petNote: 'É geralmente considerada não tóxica para cães e gatos.'
   },
@@ -188,6 +203,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'indirect',
     water: 'Rega quando a camada superior do substrato começar a secar.',
     waterCategory: 'moderate',
+    soil: 'Substrato leve e bem drenado para plantas de interior.',
     care: 'Poda as pontas para incentivar um crescimento mais denso e evita manter o substrato encharcado.',
     petNote: 'Pode causar irritação na pele ou desconforto se ingerida por animais de companhia.'
   },
@@ -200,6 +216,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'bright',
     water: 'Deixa o substrato secar quase completamente entre regas.',
     waterCategory: 'low',
+    soil: 'Mistura para suculentas, muito porosa e de drenagem rápida.',
     care: 'Prefere substrato leve e bem drenado. Os caules delicados podem partir-se se forem manuseados com força.',
     petNote: 'Não há informação de segurança suficiente para todas as situações; evita a ingestão por animais.'
   },
@@ -212,6 +229,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'bright',
     water: 'Rega quando a superfície do substrato começar a secar.',
     waterCategory: 'moderate',
+    soil: 'Substrato rico, arejado e bem drenado.',
     care: 'Gosta de boa circulação de ar e de substrato húmido, mas não encharcado. Evita molhar as folhas em excesso.',
     petNote: 'Pode ser tóxica se ingerida, especialmente as raízes e os tubérculos.'
   },
@@ -224,6 +242,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'bright',
     water: 'Rega apenas quando o substrato estiver seco.',
     waterCategory: 'low',
+    soil: 'Mistura mineral para suculentas e cactos, com drenagem rápida.',
     care: 'Usa um vaso com drenagem e substrato para suculentas. Reduz a rega nos meses frios.',
     petNote: 'Pode ser tóxica se ingerida por cães e gatos.'
   },
@@ -236,6 +255,7 @@ export const PLANT_CATALOG = [
     lightCategory: 'indirect',
     water: 'Rega quando os primeiros centímetros do substrato estiverem secos.',
     waterCategory: 'moderate',
+    soil: 'Substrato universal leve e bem drenado.',
     care: 'Evita mudanças bruscas de local e água acumulada no prato. As folhas velhas podem amarelecer naturalmente.',
     petNote: 'É geralmente considerada não tóxica para cães e gatos.'
   }

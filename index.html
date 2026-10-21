@@ -30,7 +30,6 @@
   <nav class="app-nav" aria-label="Navegação principal">
     <button class="nav-btn active" data-target="meu-jardim" aria-controls="meu-jardim" aria-current="page">Meu Jardim</button>
     <button class="nav-btn" data-target="catalogo" aria-controls="catalogo">Catálogo</button>
-    <a href="./pages/sobre.html" class="nav-link">Sobre</a>
   </nav>
 
   <!-- Conteúdo Principal -->
@@ -39,12 +38,12 @@
     <section id="meu-jardim" class="tab-content active">
       <section class="welcome-panel" aria-labelledby="welcome-title">
         <div class="welcome-copy">
-          <p class="eyebrow">O teu espaço verde</p>
-          <h2 id="welcome-title">Um jardim feliz começa com pequenos cuidados.</h2>
-          <p>Reúne as tuas plantas num só lugar e acompanha o que cada uma precisa para crescer.</p>
+          <p class="eyebrow">O teu jardim</p>
+          <h2 id="welcome-title">Cuida melhor das tuas plantas.</h2>
+          <p>O essencial do teu jardim, num só lugar.</p>
           <div class="welcome-actions">
-            <button id="hero-add-plant" class="btn-primary" type="button">Adicionar primeira planta</button>
-            <button class="btn-text nav-btn" type="button" data-target="catalogo" aria-controls="catalogo">Explorar espécies <span aria-hidden="true">→</span></button>
+            <button id="hero-add-plant" class="btn-primary" type="button">Adicionar planta</button>
+            <button class="btn-text nav-btn" type="button" data-target="catalogo" aria-controls="catalogo">Ver catálogo <span aria-hidden="true">→</span></button>
           </div>
         </div>
         <div class="welcome-art" aria-hidden="true">
@@ -57,74 +56,60 @@
         <div class="welcome-stats" aria-label="Resumo do jardim">
           <div class="stat-item">
             <span class="stat-value" id="plant-count" aria-live="polite">0</span>
-            <span class="stat-label">plantas no jardim</span>
+            <span class="stat-label">plantas</span>
           </div>
           <div class="stat-item">
             <span class="stat-value" id="species-count" aria-live="polite">0</span>
-            <span class="stat-label">espécies identificadas</span>
+            <span class="stat-label">espécies</span>
           </div>
-          <p class="stat-note"><span aria-hidden="true">✦</span> Cada planta torna o teu espaço mais especial.</p>
         </div>
       </section>
 
       <div class="section-header">
         <div>
-          <p class="eyebrow">Crescer com cuidado</p>
-          <h2>As Minhas Plantas</h2>
+          <h2>As minhas plantas</h2>
         </div>
-        <button id="btn-add-plant" class="btn-primary" type="button"><span aria-hidden="true">＋</span> Adicionar Planta</button>
+        <button id="btn-add-plant" class="btn-primary" type="button"><span aria-hidden="true">＋</span> Adicionar</button>
       </div>
       <div id="user-plants-grid" class="plants-grid" aria-live="polite">
-        <p class="empty-state">Ainda não adicionaste nenhuma planta ao teu jardim. Clica no botão acima para começar!</p>
+        <p class="empty-state">Ainda não tens plantas. Adiciona a primeira para começar.</p>
       </div>
-
-      <section class="care-section" aria-labelledby="care-title">
-        <div class="section-header">
-          <div>
-            <p class="eyebrow">Um pouco de inspiração</p>
-            <h2 id="care-title">Pequenos gestos, grandes folhas</h2>
-          </div>
-        </div>
-        <div class="care-grid">
-          <article class="care-card">
-            <span class="care-icon" aria-hidden="true">◌</span>
-            <h3>Rega consciente</h3>
-            <p>Confirma a humidade da terra antes de regar. Cada espécie tem o seu próprio ritmo.</p>
-          </article>
-          <article class="care-card">
-            <span class="care-icon" aria-hidden="true">☼</span>
-            <h3>Luz no lugar certo</h3>
-            <p>Observa como a luz muda ao longo do dia e encontra o cantinho ideal para cada planta.</p>
-          </article>
-          <article class="care-card">
-            <span class="care-icon" aria-hidden="true">✳</span>
-            <h3>Tempo para observar</h3>
-            <p>Folhas novas e pequenas mudanças são sinais valiosos de como a tua planta se sente.</p>
-          </article>
-        </div>
-      </section>
 
       <section class="agenda-section" aria-labelledby="watering-title">
         <div class="section-header">
           <div>
-            <p class="eyebrow">Ao teu ritmo</p>
-            <h2 id="watering-title">Agenda de cuidados</h2>
+            <h2 id="watering-title">Lembretes de rega</h2>
           </div>
         </div>
-        <p class="agenda-description">As datas das regas e rotinas ficam guardadas neste dispositivo. Ajusta-as às condições de cada planta. A agenda aparece quando abres a aplicação; não envia notificações quando está fechada.</p>
+        <p class="agenda-description">Os avisos aparecem aqui quando uma rega estiver prevista.</p>
+        <div class="watering-notification-controls">
+          <p id="watering-notification-status" role="status" aria-live="polite">Recebe avisos do navegador quando uma rega vencer.</p>
+          <button id="enable-watering-notifications" class="btn-secondary" type="button">Ativar notificações</button>
+        </div>
+        <div id="watering-reminders" aria-live="polite"></div>
         <div id="watering-agenda" aria-live="polite">
           <p class="agenda-empty">A carregar a agenda…</p>
         </div>
+        <details class="backup-details">
+          <summary>Cópia de segurança</summary>
+          <p>Guarda ou recupera as plantas, os favoritos e o catálogo pessoal.</p>
+          <div class="backup-actions">
+            <button id="export-garden-backup" class="btn-secondary" type="button">Exportar dados</button>
+            <button id="import-garden-backup" class="btn-secondary" type="button">Importar dados</button>
+            <input id="garden-backup-file" type="file" accept="application/json,.json" hidden>
+          </div>
+          <p id="garden-backup-status" role="status" aria-live="polite"></p>
+        </details>
       </section>
     </section>
 
     <!-- Secção: Catálogo de Espécies -->
     <section id="catalogo" class="tab-content" aria-labelledby="catalog-title">
       <div class="catalog-intro">
-        <p class="eyebrow">Encontra a tua próxima companheira verde</p>
-        <h2 id="catalog-title">Explorar Espécies</h2>
-        <p>Descobre novas plantas e aprende mais sobre os seus cuidados.</p>
-        <button type="button" id="btn-add-catalog-plant" class="btn-primary">Adicionar planta ao catálogo</button>
+        <p class="eyebrow">Guia de plantas</p>
+        <h2 id="catalog-title">Catálogo</h2>
+        <p>Encontra uma planta e consulta os cuidados essenciais.</p>
+        <button type="button" id="btn-add-catalog-plant" class="btn-secondary">Adicionar espécie</button>
       </div>
       <label class="search-bar" for="search-input">
         <span aria-hidden="true">⌕</span>
@@ -157,7 +142,7 @@
       </div>
       <p id="catalog-count" class="catalog-count" aria-live="polite"></p>
       <p id="catalog-status" class="catalog-status" role="status" aria-live="polite"></p>
-      <p class="catalog-disclaimer">As ilustrações são decorativas e os cuidados apresentados são orientações gerais. Confirma sempre as necessidades da tua planta e a segurança para crianças e animais.</p>
+      <p class="catalog-disclaimer">Os cuidados são orientações gerais; ajusta-os à tua planta e ao ambiente.</p>
       <div id="catalog-grid" class="plants-grid">
         <p class="empty-state">A carregar o catálogo de espécies…</p>
       </div>
@@ -199,6 +184,9 @@
         <option value="frequent">Mais frequente</option>
       </select>
 
+      <label for="catalog-plant-soil">Solo / substrato</label>
+      <input type="text" id="catalog-plant-soil" maxlength="240" required>
+
       <label for="catalog-plant-care">Cuidados</label>
       <input type="text" id="catalog-plant-care" required maxlength="240">
 
@@ -216,8 +204,8 @@
   <dialog id="modal-add-plant" class="app-modal">
     <form id="form-plant" method="dialog">
       <p class="eyebrow">O teu jardim</p>
-      <h3>Registar Nova Planta</h3>
-      <p class="modal-description">Adiciona uma planta e guarda as informações essenciais para cuidares dela.</p>
+      <h3 id="plant-form-title">Registar Nova Planta</h3>
+      <p id="plant-form-description" class="modal-description">Adiciona uma planta e guarda as informações essenciais para cuidares dela.</p>
       <p id="plant-form-error" class="form-error" role="alert" aria-live="polite"></p>
       
       <label for="plant-name">Nome da Planta:</label>
@@ -226,21 +214,23 @@
       <label for="plant-species">Espécie / Variedade:</label>
       <input type="text" id="plant-species" maxlength="120" placeholder="Ex: Costela-de-Adão">
 
-      <label for="plant-water">Frequência de Rega:</label>
-      <select id="plant-water" required>
-        <option value="Diária">Diária</option>
-        <option value="A cada 2-3 dias">A cada 2-3 dias</option>
-        <option value="Semanal">Semanal</option>
-        <option value="Quinzenal">Quinzenal</option>
-      </select>
+      <label for="plant-water-interval">Intervalo de rega (dias):</label>
+      <input type="number" id="plant-water-interval" min="1" max="365" value="7" required>
 
-      <label for="plant-light">Luminosidade Necessária:</label>
-      <select id="plant-light" required>
-        <option value="Luz Solar Direta">Luz Solar Direta</option>
-        <option value="Luz Indireta Forte">Luz Indireta Forte</option>
-        <option value="Sombra Parcial">Sombra Parcial</option>
-        <option value="Sombra">Sombra</option>
-      </select>
+      <label for="plant-watering-advice">Orientação de rega</label>
+      <textarea id="plant-watering-advice" maxlength="240" rows="2" placeholder="Ex.: Rega quando a camada superior do substrato estiver seca."></textarea>
+
+      <label for="plant-light">Luminosidade necessária</label>
+      <input type="text" id="plant-light" maxlength="160" required placeholder="Ex.: Luz indireta abundante">
+
+      <label for="plant-soil">Solo / substrato</label>
+      <input type="text" id="plant-soil" maxlength="240" placeholder="Ex.: Substrato leve e bem drenado">
+
+      <label for="plant-care">Outros cuidados</label>
+      <textarea id="plant-care" maxlength="400" rows="3" placeholder="Humidade, poda, fertilização ou outras notas"></textarea>
+
+      <label for="plant-pet-note">Segurança para animais de companhia</label>
+      <input type="text" id="plant-pet-note" maxlength="180" placeholder="Opcional">
 
       <label for="plant-next-watering">Próxima rega (opcional)</label>
       <input type="date" id="plant-next-watering">

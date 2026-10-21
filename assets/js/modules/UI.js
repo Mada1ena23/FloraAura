@@ -1,4 +1,14 @@
 import { getAllPlants, addPlant, updatePlant, deletePlant } from '../db.js';
+import { PLANT_CATALOG } from './catalog-data.js';
+import { getPlantPhotoUrl } from './plant-images.js';
+
+const WATERING_NOTIFICATIONS_KEY = 'floraura-watering-notifications-v1';
+const CATALOG_WATER_INTERVALS = new Map(
+  PLANT_CATALOG.map((plant) => [plant.id, { low: 14, moderate: 7, frequent: 3 }[plant.waterCategory]])
+);
+let wateringNotificationInProgress = false;
+let openPlantEditor;
+let editingPlant = null;
 
 export function setupNavigation() {
   const navBtns = document.querySelectorAll('.app-nav .nav-btn');
@@ -72,25 +82,6 @@ function createPlantStatusMeta(plant) {
   return status;
 }
 
-function getPlantPhotoUrl(plant) {
-  const speciesKey = String(plant?.species || plant?.name || 'planta').trim().toLowerCase();
-  const photoMap = {
-    'monstera deliciosa': 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=900&q=80',
-    'costela-de-ão': 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=900&q=80',
-    'chlorophytum comosum': 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80',
-    'dracaena trifasciata': 'https://images.unsplash.com/photo-1512428813834-c702c7702b78?auto=format&fit=crop&w=900&q=80',
-    'epipremnum aureum': 'https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=80',
-    'spathiphyllum wallisii': 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=900&q=80',
-    'aloe vera': 'https://images.unsplash.com/photo-1525310072745-f49212b5ac6d?auto=format&fit=crop&w=900&q=80',
-    'ficus elastica': 'https://images.unsplash.com/photo-1463320726281-696a485928c7?auto=format&fit=crop&w=900&q=80',
-    'goeppertia orbifolia': 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=900&q=80',
-    'zamioculcas zamiifolia': 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=900&q=80',
-    'pilea peperomioides': 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=900&q=80'
-  };
-
-  return photoMap[speciesKey] || 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=900&q=80';
-}
-
 function createPlantMetaIcon(iconName) {
   const icons = {
     water: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8c2.8 3.2 7 6.6 7 11.2A7 7 0 1 1 5 14c0-4.6 4.2-8 7-11.2Z"/><path d="M12 10v4.5"/><path d="M9.8 13.3h4.4"/></svg>',
@@ -102,6 +93,36 @@ function createPlantMetaIcon(iconName) {
   wrapper.className = 'meta-icon';
   wrapper.innerHTML = icons[iconName] || icons.health;
   return wrapper;
+}
+
+function createPlantCareInformation(plant) {
+  const section = document.createElement('section');
+  section.className = 'plant-care-information';
+  const heading = document.createElement('h4');
+  heading.textContent = 'Cuidados desta planta';
+  const list = document.createElement('dl');
+  list.className = 'plant-care-list';
+
+  const intervalDays = getWaterIntervalDays(plant);
+  const wateringSchedule = intervalDays
+    ? `A cada ${intervalDays} ${intervalDays === 1 ? 'dia' : 'dias'}`
+    : 'Define um intervalo de rega nos detalhes.';
+  [
+    ['Rega', [plant.wateringAdvice, wateringSchedule].filter(Boolean).join(' ') || plant.water || 'Orientação não indicada.'],
+    ['Luminosidade', plant.light || 'Não indicada.'],
+    ['Solo / substrato', plant.soil || 'Não indicado. Edita a planta para acrescentar esta informação.'],
+    ['Outros cuidados', plant.care || 'Não indicados. Edita a planta para acrescentar notas.'],
+    ['Animais de companhia', plant.petNote || 'Sem informação registada.']
+  ].forEach(([label, value]) => {
+    const term = document.createElement('dt');
+    term.textContent = label;
+    const detail = document.createElement('dd');
+    detail.textContent = value;
+    list.append(term, detail);
+  });
+
+  section.append(heading, list);
+  return section;
 }
 
 function createCareRoutines(plant, card) {
@@ -273,16 +294,9 @@ function createPlantCard(plant) {
   const photo = document.createElement('div');
   photo.className = 'plant-photo';
   photo.setAttribute('aria-hidden', 'true');
-  photo.style.backgroundImage = `linear-gradient(180deg, rgba(26, 42, 34, 0.2), rgba(12, 25, 21, 0.38)), url("${getPlantPhotoUrl(plant)}")`;
+  photo.style.backgroundImage = `linear-gradient(180deg, rgba(26, 42, 34, 0.05) 35%, rgba(12, 25, 21, 0.72)), url("${getPlantPhotoUrl(plant)}")`;
   photo.style.backgroundSize = 'cover';
   photo.style.backgroundPosition = 'center';
-
-  const leafOne = document.createElement('span');
-  leafOne.className = 'plant-leaf leaf-one';
-  const leafTwo = document.createElement('span');
-  leafTwo.className = 'plant-leaf leaf-two';
-  const leafThree = document.createElement('span');
-  leafThree.className = 'plant-leaf leaf-three';
 
   const state = getPlantStatusState(plant);
   const badge = document.createElement('span');
@@ -297,7 +311,6 @@ function createPlantCard(plant) {
   species.textContent = plant.species || 'Espécie por identificar';
   nameWrap.append(name, species);
 
-  photo.append(leafOne, leafTwo, leafThree);
   cover.append(photo, badge, nameWrap);
   card.append(cover);
 
@@ -333,15 +346,23 @@ function createPlantCard(plant) {
   const detailsButton = document.createElement('button');
   detailsButton.type = 'button';
   detailsButton.className = 'btn-secondary btn-details';
-  detailsButton.textContent = 'Ver ou editar detalhes';
+  detailsButton.textContent = 'Detalhes';
   detailsButton.setAttribute('aria-expanded', 'false');
+  detailsButton.setAttribute('aria-controls', `plant-details-${plant.id}`);
 
   summary.append(nextWatering, lightNeed, detailsButton);
   card.append(summary);
 
   const detailsPanel = document.createElement('div');
   detailsPanel.className = 'plant-card-details';
+  detailsPanel.id = `plant-details-${plant.id}`;
   detailsPanel.hidden = true;
+
+  const editButton = document.createElement('button');
+  editButton.type = 'button';
+  editButton.className = 'btn-secondary edit-plant-btn';
+  editButton.textContent = 'Editar planta';
+  editButton.addEventListener('click', () => openPlantEditor?.(plant));
 
   const dateLabel = document.createElement('label');
   dateLabel.className = 'plant-date-label';
@@ -379,20 +400,7 @@ function createPlantCard(plant) {
   waterButton.addEventListener('click', async () => {
     waterButton.disabled = true;
     try {
-      const wateredOn = getLocalDateString(new Date());
-      const intervalDays = getWaterIntervalDays(plant.water);
-      let nextWateringDate = '';
-      if (intervalDays !== null) {
-        const nextDate = new Date(`${wateredOn}T12:00:00`);
-        nextDate.setDate(nextDate.getDate() + intervalDays);
-        nextWateringDate = getLocalDateString(nextDate);
-      }
-      await updatePlant({
-        ...plant,
-        lastWatered: wateredOn,
-        nextWatering: nextWateringDate
-      });
-      await renderUserPlants();
+      await recordWateringToday(plant);
     } catch (err) {
       console.error('Erro ao atualizar a agenda de rega:', err);
       const error = document.createElement('p');
@@ -432,24 +440,35 @@ function createPlantCard(plant) {
   detailsButton.addEventListener('click', () => {
     const shouldShow = detailsPanel.hidden;
     detailsPanel.hidden = !shouldShow;
-    detailsButton.textContent = shouldShow ? 'Ocultar detalhes' : 'Ver ou editar detalhes';
+    detailsButton.textContent = shouldShow ? 'Fechar detalhes' : 'Detalhes';
     detailsButton.setAttribute('aria-expanded', String(shouldShow));
   });
 
-  detailsPanel.append(dateLabel, saveDateButton, waterButton, createCareRoutines(plant, card), deleteButton);
+  detailsPanel.append(
+    createPlantCareInformation(plant),
+    editButton,
+    dateLabel,
+    saveDateButton,
+    waterButton,
+    createCareRoutines(plant, card),
+    deleteButton
+  );
   card.append(detailsPanel);
 
   return card;
 }
 
-function getWaterIntervalDays(waterFrequency) {
+function getWaterIntervalDays(plant) {
+  if (Number.isInteger(plant?.waterIntervalDays) && plant.waterIntervalDays >= 1 && plant.waterIntervalDays <= 365) {
+    return plant.waterIntervalDays;
+  }
   const intervals = {
     'Diária': 1,
     'A cada 2-3 dias': 3,
     'Semanal': 7,
     'Quinzenal': 14
   };
-  return intervals[waterFrequency] ?? null;
+  return CATALOG_WATER_INTERVALS.get(plant?.catalogId) ?? intervals[plant?.water] ?? null;
 }
 
 function getLocalDateString(date) {
@@ -471,6 +490,8 @@ function renderWateringAgenda(plants) {
   const container = document.getElementById('watering-agenda');
   if (!container) return;
 
+  renderDueWateringReminder(plants);
+
   const scheduledPlants = plants
     .flatMap((plant) => {
       const entries = [];
@@ -489,7 +510,7 @@ function renderWateringAgenda(plants) {
   if (scheduledPlants.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'agenda-empty';
-    empty.textContent = 'Ainda não tens cuidados agendados. Define datas de rega ou cria rotinas nos cartões das plantas.';
+    empty.textContent = 'Sem lembretes de rega.';
     container.replaceChildren(empty);
     return;
   }
@@ -500,6 +521,7 @@ function renderWateringAgenda(plants) {
 
   scheduledPlants.forEach(({ plant, task, date }) => {
     const item = document.createElement('li');
+    if (date <= today) item.classList.add('is-priority');
     const title = document.createElement('strong');
     title.textContent = `${String(plant.name ?? 'Planta sem nome')} — ${task}`;
     const dateText = document.createElement('span');
@@ -520,6 +542,201 @@ function renderWateringAgenda(plants) {
   container.replaceChildren(list);
 }
 
+async function recordWateringToday(plant) {
+  const wateredOn = getLocalDateString(new Date());
+  const intervalDays = getWaterIntervalDays(plant);
+  let nextWateringDate = '';
+  if (intervalDays !== null) {
+    const nextDate = new Date(`${wateredOn}T12:00:00`);
+    nextDate.setDate(nextDate.getDate() + intervalDays);
+    nextWateringDate = getLocalDateString(nextDate);
+  }
+
+  await updatePlant({
+    ...plant,
+    lastWatered: wateredOn,
+    nextWatering: nextWateringDate
+  });
+  await renderUserPlants();
+}
+
+function getDueWateringPlants(plants) {
+  const today = getLocalDateString(new Date());
+  return plants.filter((plant) => (
+    /^\d{4}-\d{2}-\d{2}$/.test(plant.nextWatering ?? '') &&
+    plant.nextWatering <= today
+  ));
+}
+
+function renderDueWateringReminder(plants) {
+  const container = document.getElementById('watering-reminders');
+  if (!container) return;
+
+  const duePlants = getDueWateringPlants(plants);
+  if (duePlants.length === 0) {
+    container.replaceChildren();
+    return;
+  }
+
+  const reminder = document.createElement('section');
+  reminder.className = 'watering-reminder';
+  reminder.setAttribute('role', 'alert');
+
+  const heading = document.createElement('h3');
+  heading.textContent = 'Está na hora de regar!';
+
+  const list = document.createElement('ul');
+  list.className = 'watering-due-list';
+  const today = getLocalDateString(new Date());
+  duePlants
+    .sort((first, second) => first.nextWatering.localeCompare(second.nextWatering))
+    .forEach((plant) => {
+      const item = document.createElement('li');
+      item.className = 'watering-due-item';
+      const name = document.createElement('span');
+      name.textContent = `${String(plant.name ?? 'Planta sem nome')} — ${plant.nextWatering < today ? 'atrasada' : 'hoje'}`;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn-secondary';
+      button.textContent = 'Marcar rega feita';
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        try {
+          await recordWateringToday(plant);
+        } catch (err) {
+          console.error('Erro ao registar a rega:', err);
+          button.disabled = false;
+          const error = document.createElement('p');
+          error.className = 'form-error';
+          error.setAttribute('role', 'alert');
+          error.textContent = `Não foi possível registar a rega de ${String(plant.name ?? 'esta planta')}.`;
+          reminder.append(error);
+        }
+      });
+      item.append(name, button);
+      list.append(item);
+    });
+
+  reminder.append(heading, list);
+  container.replaceChildren(reminder);
+}
+
+async function notifyDueWatering(plants) {
+  if (
+    wateringNotificationInProgress ||
+    typeof Notification === 'undefined' ||
+    Notification.permission !== 'granted' ||
+    !('serviceWorker' in navigator)
+  ) {
+    return;
+  }
+
+  const duePlants = getDueWateringPlants(plants);
+  const dueKeys = duePlants.map((plant) => JSON.stringify([String(plant.id ?? plant.name), plant.nextWatering]));
+  let notifiedKeys;
+  try {
+    const stored = localStorage.getItem(WATERING_NOTIFICATIONS_KEY);
+    notifiedKeys = stored === null ? [] : JSON.parse(stored);
+    if (!Array.isArray(notifiedKeys) || notifiedKeys.some((key) => typeof key !== 'string')) {
+      throw new Error('O estado das notificações de rega guardado tem um formato inválido.');
+    }
+  } catch (err) {
+    console.error('Erro ao consultar notificações de rega já apresentadas:', err);
+    return;
+  }
+
+  const pendingPlants = duePlants.filter((plant) => (
+    !notifiedKeys.includes(JSON.stringify([String(plant.id ?? plant.name), plant.nextWatering]))
+  ));
+  if (pendingPlants.length === 0) {
+    const currentKeys = notifiedKeys.filter((key) => dueKeys.includes(key));
+    if (currentKeys.length !== notifiedKeys.length) {
+      try {
+        localStorage.setItem(WATERING_NOTIFICATIONS_KEY, JSON.stringify(currentKeys));
+      } catch (err) {
+        console.error('Erro ao atualizar o estado das notificações de rega:', err);
+      }
+    }
+    return;
+  }
+
+  wateringNotificationInProgress = true;
+  try {
+    const names = pendingPlants.slice(0, 3).map((plant) => String(plant.name ?? 'Planta sem nome'));
+    const remainingCount = pendingPlants.length - names.length;
+    const body = `${names.join(', ')}${remainingCount > 0 ? ` e mais ${remainingCount}` : ''}`;
+    const registration = await navigator.serviceWorker.ready;
+    await registration.showNotification(
+      pendingPlants.length === 1 ? 'FloraAura — hora da rega' : 'FloraAura — hora das regas',
+      {
+        body,
+        icon: new URL('../../images/icons/icon-192x192.png', import.meta.url).href,
+        tag: 'floraura-watering-due',
+        data: { url: new URL('../../../index.html', import.meta.url).href }
+      }
+    );
+    const updatedKeys = new Set([...notifiedKeys.filter((key) => dueKeys.includes(key)), ...dueKeys]);
+    localStorage.setItem(WATERING_NOTIFICATIONS_KEY, JSON.stringify([...updatedKeys]));
+  } catch (err) {
+    console.error('Erro ao apresentar a notificação de rega:', err);
+  } finally {
+    wateringNotificationInProgress = false;
+  }
+}
+
+export function setupWateringReminders() {
+  const button = document.getElementById('enable-watering-notifications');
+  const status = document.getElementById('watering-notification-status');
+  if (!button || !status) return;
+
+  const updatePermissionStatus = () => {
+    if (typeof Notification === 'undefined' || !('serviceWorker' in navigator)) {
+      status.textContent = 'Notificações do navegador indisponíveis.';
+      button.hidden = true;
+    } else if (Notification.permission === 'granted') {
+      status.textContent = 'Notificações ativadas.';
+      button.hidden = true;
+    } else if (Notification.permission === 'denied') {
+      status.textContent = 'Notificações bloqueadas nas definições do navegador.';
+      button.hidden = true;
+    } else {
+      status.textContent = 'Recebe avisos do navegador quando uma rega vencer.';
+      button.hidden = false;
+    }
+  };
+
+  const refreshReminders = async () => {
+    try {
+      const plants = await getAllPlants();
+      renderWateringAgenda(plants);
+      await notifyDueWatering(plants);
+    } catch (err) {
+      console.error('Erro ao verificar os lembretes de rega:', err);
+    }
+  };
+
+  updatePermissionStatus();
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    try {
+      await Notification.requestPermission();
+      updatePermissionStatus();
+      await refreshReminders();
+    } catch (err) {
+      console.error('Erro ao pedir permissão para notificações:', err);
+      status.textContent = 'Não foi possível ativar as notificações. Verifica as permissões do navegador.';
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  window.setInterval(refreshReminders, 60_000);
+  window.addEventListener('focus', refreshReminders);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refreshReminders();
+  });
+}
+
 export async function renderUserPlants() {
   const container = document.getElementById('user-plants-grid');
   if (!container) return;
@@ -528,10 +745,11 @@ export async function renderUserPlants() {
     const plants = await getAllPlants();
     updateGardenSummary(plants);
     renderWateringAgenda(plants);
+    await notifyDueWatering(plants);
     if (plants.length === 0) {
       const empty = document.createElement('p');
       empty.className = 'empty-state';
-      empty.textContent = 'Ainda não adicionaste nenhuma planta ao teu jardim.';
+      empty.textContent = 'Ainda não tens plantas. Adiciona a primeira para começar.';
       container.replaceChildren(empty);
       return;
     }
@@ -555,38 +773,80 @@ export function setupModal() {
   const form = document.getElementById('form-plant');
   const formError = document.getElementById('plant-form-error');
   const nameInput = document.getElementById('plant-name');
+  const title = document.getElementById('plant-form-title');
+  const description = document.getElementById('plant-form-description');
+  const submitButton = form?.querySelector('button[type="submit"]');
 
   nameInput?.addEventListener('input', () => nameInput.setCustomValidity(''));
-  const openModal = () => {
+  const openModal = (plant = null) => {
     if (!modal) return;
+    editingPlant = plant;
+    form?.reset();
+    document.getElementById('plant-water-interval').value = String(getWaterIntervalDays(plant) ?? 7);
+    document.getElementById('plant-name').value = plant?.name ?? '';
+    document.getElementById('plant-species').value = plant?.species ?? '';
+    document.getElementById('plant-watering-advice').value = plant?.wateringAdvice ?? '';
+    document.getElementById('plant-light').value = plant?.light ?? 'Luz Indireta Forte';
+    document.getElementById('plant-soil').value = plant?.soil ?? '';
+    document.getElementById('plant-care').value = plant?.care ?? '';
+    document.getElementById('plant-pet-note').value = plant?.petNote ?? '';
+    document.getElementById('plant-next-watering').value = plant?.nextWatering ?? '';
+    if (title) title.textContent = plant ? 'Editar planta' : 'Registar Nova Planta';
+    if (description) {
+      description.textContent = plant
+        ? 'Atualiza as informações e os cuidados desta planta.'
+        : 'Adiciona uma planta e guarda as informações essenciais para cuidares dela.';
+    }
+    if (submitButton) submitButton.textContent = plant ? 'Guardar alterações' : 'Guardar Planta';
     formError?.replaceChildren();
     modal.showModal();
+    nameInput?.focus();
   };
 
-  btnOpen?.addEventListener('click', openModal);
-  heroBtnOpen?.addEventListener('click', openModal);
-  btnCancel?.addEventListener('click', () => modal.close());
+  openPlantEditor = openModal;
+  btnOpen?.addEventListener('click', () => openModal());
+  heroBtnOpen?.addEventListener('click', () => openModal());
+  btnCancel?.addEventListener('click', () => {
+    modal.close();
+    form?.reset();
+  });
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     formError?.replaceChildren();
-    const newPlant = {
+    const intervalInput = document.getElementById('plant-water-interval');
+    const waterIntervalDays = Number(intervalInput.value);
+    if (!Number.isInteger(waterIntervalDays) || waterIntervalDays < 1 || waterIntervalDays > 365) {
+      intervalInput.reportValidity();
+      return;
+    }
+    const plantData = {
       name: document.getElementById('plant-name').value.trim(),
       species: document.getElementById('plant-species').value.trim(),
-      water: document.getElementById('plant-water').value,
+      waterIntervalDays,
+      wateringAdvice: document.getElementById('plant-watering-advice').value.trim(),
       light: document.getElementById('plant-light').value,
+      soil: document.getElementById('plant-soil').value.trim(),
+      care: document.getElementById('plant-care').value.trim(),
+      petNote: document.getElementById('plant-pet-note').value.trim(),
       nextWatering: document.getElementById('plant-next-watering').value,
-      createdAt: new Date().toISOString()
+      createdAt: editingPlant?.createdAt ?? new Date().toISOString()
     };
 
-    nameInput.setCustomValidity(newPlant.name ? '' : 'Introduz o nome da planta.');
-    if (!newPlant.name) {
+    nameInput.setCustomValidity(plantData.name ? '' : 'Introduz o nome da planta.');
+    if (!plantData.name) {
       nameInput.reportValidity();
       return;
     }
 
+    if (submitButton) submitButton.disabled = true;
     try {
-      await addPlant(newPlant);
+      if (editingPlant) {
+        await updatePlant({ ...editingPlant, ...plantData });
+      } else {
+        await addPlant(plantData);
+      }
+      editingPlant = null;
       form.reset();
       modal?.close();
       await renderUserPlants();
@@ -595,6 +855,8 @@ export function setupModal() {
       if (formError) {
         formError.textContent = 'Não foi possível guardar a planta. Verifica o espaço disponível e tenta novamente.';
       }
+    } finally {
+      if (submitButton) submitButton.disabled = false;
     }
   });
 }

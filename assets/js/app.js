@@ -1,5 +1,6 @@
-import { setupNavigation, renderUserPlants, setupModal } from './modules/UI.js';
+import { setupNavigation, renderUserPlants, setupModal, setupWateringReminders } from './modules/UI.js';
 import { setupCatalog } from './modules/catalog.js';
+import { setupGardenBackup } from './modules/backup.js';
 
 let deferredInstallPrompt;
 const installButton = document.getElementById('pwa-install-btn');
@@ -48,6 +49,8 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   setupNavigation();
   setupModal();
+  setupWateringReminders();
+  setupGardenBackup();
   renderUserPlants();
   setupCatalog();
 });

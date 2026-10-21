@@ -1,6 +1,7 @@
 import { addPlant, getFavoriteSpecies, toggleFavoriteSpecies } from '../db.js';
 import { PLANT_CATALOG } from './catalog-data.js';
 import { renderUserPlants } from './UI.js';
+import { getPlantPhotoUrl } from './plant-images.js';
 
 const CATALOG_STORAGE_KEY = 'floraura-catalog-v1';
 let favoriteIds = new Set();
@@ -9,33 +10,6 @@ let hiddenCatalogIds = new Set();
 
 function normalizeSearchText(value) {
   return value.toLocaleLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
-}
-
-function createIllustration(plant) {
-  const namespace = 'http://www.w3.org/2000/svg';
-  const illustration = document.createElementNS(namespace, 'svg');
-  illustration.setAttribute('viewBox', '0 0 240 180');
-  illustration.setAttribute('role', 'img');
-  illustration.setAttribute('aria-label', `Ilustração decorativa de ${plant.name}`);
-
-  const pot = document.createElementNS(namespace, 'path');
-  pot.setAttribute('d', 'M82 125h76l-9 38H91z');
-  pot.setAttribute('class', 'illustration-pot');
-
-  const rim = document.createElementNS(namespace, 'path');
-  rim.setAttribute('d', 'M77 120h86v11H77z');
-  rim.setAttribute('class', 'illustration-rim');
-
-  const stem = document.createElementNS(namespace, 'path');
-  stem.setAttribute('d', 'M120 121V62m0 39L90 76m30 12 31-28m-31 48 32-20');
-  stem.setAttribute('class', 'illustration-stem');
-
-  const leaves = document.createElementNS(namespace, 'path');
-  leaves.setAttribute('d', 'M117 67C89 62 83 45 88 30c17 1 30 12 29 37Zm7 5c2-24 18-38 36-39 4 17-7 34-36 39Zm-28 8c-20 1-33-9-35-25 14-7 30 0 35 25Zm30 21c4-21 18-30 34-29 3 15-10 28-34 29Z');
-  leaves.setAttribute('class', 'illustration-leaves');
-
-  illustration.append(leaves, stem, pot, rim);
-  return illustration;
 }
 
 function createFavoriteButton(plant, favorites) {
@@ -110,12 +84,19 @@ function openCatalogForm(plant = null) {
   document.getElementById('catalog-plant-light-category').value = plant?.lightCategory ?? 'indirect';
   document.getElementById('catalog-plant-water').value = plant?.water ?? '';
   document.getElementById('catalog-plant-water-category').value = plant?.waterCategory ?? 'moderate';
+  document.getElementById('catalog-plant-soil').value = plant?.soil ?? '';
   document.getElementById('catalog-plant-care').value = plant?.care ?? '';
   document.getElementById('catalog-plant-pet-note').value = plant?.petNote ?? '';
   modal.showModal();
 }
 
 function createCatalogManagement(plant) {
+  const details = document.createElement('details');
+  details.className = 'catalog-management-details';
+
+  const summary = document.createElement('summary');
+  summary.textContent = 'Gerir espécie';
+
   const actions = document.createElement('div');
   actions.className = 'catalog-management';
 
@@ -152,7 +133,8 @@ function createCatalogManagement(plant) {
   });
 
   actions.append(editButton, deleteButton);
-  return actions;
+  details.append(summary, actions);
+  return details;
 }
 
 function createCatalogCard(plant, favorites) {
@@ -160,8 +142,15 @@ function createCatalogCard(plant, favorites) {
   card.className = 'catalog-card';
 
   const artwork = document.createElement('div');
-  artwork.className = `species-art species-art--${plant.lightCategory}`;
-  artwork.append(createIllustration(plant));
+  artwork.className = 'species-art';
+  const photo = document.createElement('img');
+  photo.className = 'species-photo';
+  photo.src = getPlantPhotoUrl(plant);
+  photo.alt = `Fotografia de ${plant.name}`;
+  photo.loading = 'lazy';
+  photo.decoding = 'async';
+  photo.addEventListener('error', () => photo.remove(), { once: true });
+  artwork.append(photo);
   artwork.append(createFavoriteButton(plant, favorites));
 
   const content = document.createElement('div');
@@ -188,6 +177,7 @@ function createCatalogCard(plant, favorites) {
   [
     ['Luz', plant.light],
     ['Rega', plant.water],
+    ['Solo / substrato', plant.soil || 'Não indicado.'],
     ['Cuidados', plant.care],
     ['Animais de companhia', plant.petNote]
   ].forEach(([label, value]) => {
@@ -203,7 +193,7 @@ function createCatalogCard(plant, favorites) {
   const addButton = document.createElement('button');
   addButton.type = 'button';
   addButton.className = 'btn-primary catalog-add-btn';
-  addButton.textContent = 'Adicionar ao meu jardim';
+  addButton.textContent = 'Adicionar ao jardim';
   addButton.addEventListener('click', async () => {
     addButton.disabled = true;
     try {
@@ -212,7 +202,12 @@ function createCatalogCard(plant, favorites) {
         name: plant.name,
         species: plant.species,
         water: plant.water,
+        waterIntervalDays: { low: 14, moderate: 7, frequent: 3 }[plant.waterCategory] ?? 7,
+        wateringAdvice: plant.water,
         light: plant.light,
+        soil: plant.soil,
+        care: plant.care,
+        petNote: plant.petNote,
         createdAt: new Date().toISOString()
       });
       await renderUserPlants();
@@ -307,6 +302,7 @@ export async function setupCatalog() {
       lightCategory: document.getElementById('catalog-plant-light-category').value,
       water: document.getElementById('catalog-plant-water').value.trim(),
       waterCategory: document.getElementById('catalog-plant-water-category').value,
+      soil: document.getElementById('catalog-plant-soil').value.trim(),
       care: document.getElementById('catalog-plant-care').value.trim(),
       petNote: document.getElementById('catalog-plant-pet-note').value.trim() || 'Sem informação sobre segurança para animais.'
     };

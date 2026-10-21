@@ -2,7 +2,7 @@ const APP_SCOPE_KEY = new URL(self.registration.scope).pathname
   .replace(/^\/|\/$/g, '')
   .replace(/[^a-zA-Z0-9_-]+/g, '_') || 'root';
 const CACHE_PREFIX = `floraura-${APP_SCOPE_KEY}-`;
-const CACHE_NAME = `${CACHE_PREFIX}v1.0.11`;
+const CACHE_NAME = `${CACHE_PREFIX}v1.0.23`;
 const LEGACY_CACHES = [
   'floraura-v1.0.0',
   'floraura-v1.0.1',
@@ -19,7 +19,7 @@ const LEGACY_CACHES = [
 const appAsset = (path) => new URL(path, self.registration.scope).href;
 const ASSETS_TO_CACHE = [
   'index.html',
-  'pages/sobre.html',
+  'pages/login.html',
   'pages/offline.html',
   'assets/css/styles.css',
   'assets/images/logo.svg',
@@ -30,6 +30,8 @@ const ASSETS_TO_CACHE = [
   'assets/js/modules/UI.js',
   'assets/js/modules/catalog.js',
   'assets/js/modules/catalog-data.js',
+  'assets/js/modules/plant-images.js',
+  'assets/js/modules/backup.js',
   'manifest.json'
 ].map(appAsset);
 
@@ -39,15 +41,27 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[FloraAura SW] A guardar recursos estáticos no cache...');
       return cache.addAll(ASSETS_TO_CACHE);
-    })
+    }).then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      const appClient = clients.find((client) => client.url.startsWith(self.registration.scope));
+      if (appClient) {
+        return appClient.focus();
+      }
+      return self.clients.openWindow(appAsset('index.html'));
+    })
+  );
 });
 
 // Ativação e limpeza de Caches Antigos
@@ -62,35 +76,40 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 // Estratégia de Pedidos: Tenta Rede, com Fallback para Cache e Página Offline
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.origin !== self.location.origin) return;
+
+  const networkResponse = fetch(event.request);
+  const cacheUpdate = networkResponse
+    .then((response) => {
+      if (response.status === 200 && requestUrl.href.startsWith(self.registration.scope)) {
+        return caches.open(CACHE_NAME)
+          .then((cache) => cache.put(event.request, response.clone()))
+          .catch((error) => console.error('[FloraAura SW] Não foi possível guardar a resposta no cache:', error));
+      }
+    }, () => undefined);
+
+  event.waitUntil(cacheUpdate);
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response && response.status === 200 && event.request.url.startsWith(self.registration.scope)) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone)).catch(() => {});
-        }
-        return response;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // Se for uma navegação HTML e falhar, exibe a página offline
-          if (event.request.mode === 'navigate') {
-            return caches.match(appAsset('pages/offline.html')) || Response.error();
-          }
-          return Response.error();
-        });
-      })
+    networkResponse.catch(async () => {
+      const cachedResponse = await caches.match(event.request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      // Se for uma navegação HTML e falhar, exibe a página offline
+      if (event.request.mode === 'navigate') {
+        const offlineResponse = await caches.match(appAsset('pages/offline.html'));
+        return offlineResponse || Response.error();
+      }
+      return Response.error();
+    })
   );
 });
