@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-PT">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,7 +20,7 @@
   <!-- Cabeçalho Principal -->
   <header class="app-header">
     <div class="logo-container">
-      <img src="./assets/images/logo.svg" alt="Logótipo FloraAura" class="logo" onerror="this.style.display='none'">
+      <img src="./assets/images/logo.svg" alt="" class="logo">
       <h1>FloraAura</h1>
     </div>
     <button id="pwa-install-btn" class="btn-install" hidden>Instalar App</button>
@@ -103,6 +103,19 @@
           </article>
         </div>
       </section>
+
+      <section class="agenda-section" aria-labelledby="watering-title">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">Ao teu ritmo</p>
+            <h2 id="watering-title">Agenda de cuidados</h2>
+          </div>
+        </div>
+        <p class="agenda-description">As datas das regas e rotinas ficam guardadas neste dispositivo. Ajusta-as às condições de cada planta. A agenda aparece quando abres a aplicação; não envia notificações quando está fechada.</p>
+        <div id="watering-agenda" aria-live="polite">
+          <p class="agenda-empty">A carregar a agenda…</p>
+        </div>
+      </section>
     </section>
 
     <!-- Secção: Catálogo de Espécies -->
@@ -111,16 +124,93 @@
         <p class="eyebrow">Encontra a tua próxima companheira verde</p>
         <h2 id="catalog-title">Explorar Espécies</h2>
         <p>Descobre novas plantas e aprende mais sobre os seus cuidados.</p>
+        <button type="button" id="btn-add-catalog-plant" class="btn-primary">Adicionar planta ao catálogo</button>
       </div>
       <label class="search-bar" for="search-input">
         <span aria-hidden="true">⌕</span>
+        <span class="visually-hidden">Pesquisar plantas por nome, espécie ou cuidados</span>
         <input type="search" id="search-input" placeholder="Pesquisar por nome ou espécie..." autocomplete="off">
       </label>
+      <div class="catalog-filters" role="group" aria-label="Filtros do catálogo">
+        <label class="filter-control" for="light-filter">
+          <span>Luminosidade</span>
+          <select id="light-filter">
+            <option value="all">Todas</option>
+            <option value="shade">Pouca luz</option>
+            <option value="indirect">Luz indireta</option>
+            <option value="bright">Muita luz</option>
+          </select>
+        </label>
+        <label class="filter-control" for="water-filter">
+          <span>Frequência de rega</span>
+          <select id="water-filter">
+            <option value="all">Todas</option>
+            <option value="low">Pouco frequente</option>
+            <option value="moderate">Moderada</option>
+            <option value="frequent">Mais frequente</option>
+          </select>
+        </label>
+        <label class="favorites-control" for="favorites-filter">
+          <input id="favorites-filter" type="checkbox">
+          <span>Mostrar favoritas</span>
+        </label>
+      </div>
+      <p id="catalog-count" class="catalog-count" aria-live="polite"></p>
+      <p id="catalog-status" class="catalog-status" role="status" aria-live="polite"></p>
+      <p class="catalog-disclaimer">As ilustrações são decorativas e os cuidados apresentados são orientações gerais. Confirma sempre as necessidades da tua planta e a segurança para crianças e animais.</p>
       <div id="catalog-grid" class="plants-grid">
-        <!-- Plantas carregadas via JavaScript -->
+        <p class="empty-state">A carregar o catálogo de espécies…</p>
       </div>
     </section>
   </main>
+
+  <dialog id="modal-catalog-plant" class="app-modal">
+    <form id="form-catalog-plant" method="dialog">
+      <p class="eyebrow">Catálogo pessoal</p>
+      <h3 id="catalog-form-title">Adicionar planta ao catálogo</h3>
+      <p id="catalog-form-error" class="form-error" role="alert" aria-live="polite"></p>
+
+      <label for="catalog-plant-name">Nome da planta</label>
+      <input type="text" id="catalog-plant-name" required maxlength="80" autocomplete="off">
+
+      <label for="catalog-plant-species">Espécie / variedade</label>
+      <input type="text" id="catalog-plant-species" maxlength="120">
+
+      <label for="catalog-plant-description">Descrição</label>
+      <input type="text" id="catalog-plant-description" required maxlength="240">
+
+      <label for="catalog-plant-light">Luminosidade</label>
+      <input type="text" id="catalog-plant-light" required maxlength="160">
+
+      <label for="catalog-plant-light-category">Categoria de luminosidade</label>
+      <select id="catalog-plant-light-category" required>
+        <option value="shade">Pouca luz</option>
+        <option value="indirect">Luz indireta</option>
+        <option value="bright">Muita luz</option>
+      </select>
+
+      <label for="catalog-plant-water">Rega</label>
+      <input type="text" id="catalog-plant-water" required maxlength="160">
+
+      <label for="catalog-plant-water-category">Frequência de rega</label>
+      <select id="catalog-plant-water-category" required>
+        <option value="low">Pouco frequente</option>
+        <option value="moderate">Moderada</option>
+        <option value="frequent">Mais frequente</option>
+      </select>
+
+      <label for="catalog-plant-care">Cuidados</label>
+      <input type="text" id="catalog-plant-care" required maxlength="240">
+
+      <label for="catalog-plant-pet-note">Nota sobre animais de companhia</label>
+      <input type="text" id="catalog-plant-pet-note" maxlength="180">
+
+      <div class="modal-actions">
+        <button type="button" id="btn-cancel-catalog-plant" class="btn-secondary">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar no catálogo</button>
+      </div>
+    </form>
+  </dialog>
 
   <!-- Modal / Formulário para Registar Nova Planta -->
   <dialog id="modal-add-plant" class="app-modal">
@@ -128,12 +218,13 @@
       <p class="eyebrow">O teu jardim</p>
       <h3>Registar Nova Planta</h3>
       <p class="modal-description">Adiciona uma planta e guarda as informações essenciais para cuidares dela.</p>
+      <p id="plant-form-error" class="form-error" role="alert" aria-live="polite"></p>
       
       <label for="plant-name">Nome da Planta:</label>
-      <input type="text" id="plant-name" required placeholder="Ex: Monstera Deliciosa">
+      <input type="text" id="plant-name" required maxlength="80" autocomplete="off" placeholder="Ex: Monstera Deliciosa">
 
       <label for="plant-species">Espécie / Variedade:</label>
-      <input type="text" id="plant-species" placeholder="Ex: Costela-de-Adão">
+      <input type="text" id="plant-species" maxlength="120" placeholder="Ex: Costela-de-Adão">
 
       <label for="plant-water">Frequência de Rega:</label>
       <select id="plant-water" required>
@@ -150,6 +241,10 @@
         <option value="Sombra Parcial">Sombra Parcial</option>
         <option value="Sombra">Sombra</option>
       </select>
+
+      <label for="plant-next-watering">Próxima rega (opcional)</label>
+      <input type="date" id="plant-next-watering">
+      <p class="form-hint">A data é um lembrete local, não uma notificação automática.</p>
 
       <div class="modal-actions">
         <button type="button" id="btn-cancel" class="btn-secondary">Cancelar</button>
