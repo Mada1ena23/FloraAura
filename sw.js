@@ -2,7 +2,7 @@ const APP_SCOPE_KEY = new URL(self.registration.scope).pathname
   .replace(/^\/|\/$/g, '')
   .replace(/[^a-zA-Z0-9_-]+/g, '_') || 'root';
 const CACHE_PREFIX = `floraura-${APP_SCOPE_KEY}-`;
-const CACHE_NAME = `${CACHE_PREFIX}v1.0.29`;
+const CACHE_NAME = `${CACHE_PREFIX}v1.0.30`;
 const LEGACY_CACHES = [
   'floraura-v1.0.0',
   'floraura-v1.0.1',
@@ -27,6 +27,7 @@ const ASSETS_TO_CACHE = [
   'assets/images/plant-placeholder.svg',
   'assets/images/icons/icon-192x192.png',
   'assets/images/icons/icon-512x512.png',
+  'assets/images/welcome-flowers.jpg',
   'assets/js/app.js',
   'assets/js/db.js',
   'assets/js/modules/UI.js',
