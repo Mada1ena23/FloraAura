@@ -1,0 +1,48 @@
+.weather-alert {
+  display: flex;
+  width: min(100%, 560px);
+  min-height: 88px;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem auto;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  padding: 1.1rem 1.25rem;
+  font-family: "Segoe UI", Inter, system-ui, sans-serif;
+}
+
+.weather-alert--sol {
+  border-color: #f0d7b1;
+  background: #fff3e3;
+  color: #70491e;
+}
+
+.weather-alert--chuva {
+  border-color: #c9dce8;
+  background: #eaf4fb;
+  color: #31566c;
+}
+
+.weather-alert__icon {
+  flex: 0 0 auto;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.weather-alert__message {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+@media (max-width: 420px) {
+  .weather-alert {
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .weather-alert__message {
+    font-size: 0.92rem;
+  }
+}

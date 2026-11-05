@@ -54,3 +54,28 @@ export default function App() {
 ```
 
 O navegador tem de permitir o acesso à localização, e a aplicação deve estar num contexto seguro (HTTPS ou `localhost`). O componente mostra a temperatura atual e máxima, a probabilidade e quantidade de chuva, e apresenta uma sugestão geral para rega ou proteção solar. A previsão não substitui a verificação do substrato nem os cuidados específicos de cada planta.
+
+## Cartão de alerta meteorológico
+
+Para apresentar um alerta simples com base no estado do clima:
+
+```jsx
+import WeatherAlert from './WeatherAlert.jsx';
+
+<WeatherAlert estatutoclima="sol" />
+<WeatherAlert estatutoclima="chuva" />
+```
+
+O estado `sol` mostra o alerta laranja de rega à noite; `chuva` mostra o alerta azul a indicar que não é necessário regar. Para outros valores, o componente não apresenta um cartão.
+
+## Missões e pontos do jardim
+
+O componente `GardenMissions` apresenta o nível «Jardineiro Iniciante», duas missões selecionáveis e uma barra de progresso calculada sobre os 50 pontos disponíveis:
+
+```jsx
+import GardenMissions from './GardenMissions.jsx';
+
+<GardenMissions />
+```
+
+Assinalar ou desmarcar uma missão atualiza imediatamente os pontos e a barra. O progresso fica no estado React do componente e reinicia quando o componente é desmontado ou a página é recarregada.

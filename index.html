@@ -59,6 +59,71 @@
           </div>
         </div>
       </section>
+
+      <section class="home-tools" aria-label="Ferramentas do jardim">
+        <div class="home-tools__grid">
+          <section class="home-tool-card diagnosis-tool" aria-labelledby="diagnosis-title">
+            <div class="home-tool-heading">
+              <p class="eyebrow">Identificação</p>
+              <h2 id="diagnosis-title">Diagnóstico de plantas</h2>
+              <p>Fotografa uma planta para ver uma demonstração de diagnóstico.</p>
+            </div>
+            <input id="plant-diagnosis-file" class="visually-hidden" type="file" accept="image/*" capture="environment" aria-label="Tirar ou escolher fotografia da planta">
+            <div id="plant-diagnosis-preview" class="diagnosis-preview" aria-live="polite">
+              <div class="diagnosis-placeholder" aria-hidden="true">
+                <span>🌿</span>
+                <p>A fotografia da tua planta aparecerá aqui</p>
+              </div>
+            </div>
+            <p id="plant-diagnosis-status" class="feature-status" role="status" aria-live="polite"></p>
+            <button id="plant-diagnosis-button" class="btn-primary feature-button" type="button">Tirar Foto/Analisar</button>
+            <p class="feature-disclaimer">A análise é uma demonstração local; a fotografia não é enviada nem analisada por IA.</p>
+          </section>
+
+          <section class="home-tool-card weather-tool" aria-labelledby="weather-title">
+            <div class="home-tool-heading">
+              <p class="eyebrow">Cuidados de hoje</p>
+              <h2 id="weather-title">Alerta meteorológico</h2>
+              <p>Consulta a previsão para ajustar os cuidados do teu jardim.</p>
+            </div>
+            <div id="weather-alert" class="weather-alert weather-alert--empty" aria-live="polite">
+              <span class="weather-alert__icon" aria-hidden="true">☀</span>
+              <p class="weather-alert__message">Consulta a meteorologia local para receber uma sugestão.</p>
+            </div>
+            <p id="weather-status" class="feature-status" role="status" aria-live="polite"></p>
+            <button id="weather-check-button" class="btn-secondary feature-button" type="button">Consultar previsão local</button>
+            <p class="feature-disclaimer">A localização só é pedida ao carregar no botão. A previsão usa o serviço gratuito Open-Meteo.</p>
+          </section>
+        </div>
+
+        <section class="home-tool-card missions-tool" aria-labelledby="missions-title">
+          <div class="missions-header">
+            <div class="home-tool-heading">
+              <p class="eyebrow">O meu jardim · desafios</p>
+              <h2 id="missions-title">Nível 1 — Jardineiro Iniciante</h2>
+              <p>Completa pequenas missões para ganhar pontos.</p>
+            </div>
+            <p class="missions-points" aria-live="polite"><strong id="missions-points">0</strong><span> / 50 pts</span></p>
+          </div>
+          <div class="missions-progress" role="progressbar" aria-label="Progresso das missões" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0" aria-valuetext="0 de 50 pontos">
+            <span id="missions-progress-fill"></span>
+          </div>
+          <p id="missions-progress-caption" class="missions-progress-caption">Conclui as missões para ganhar pontos</p>
+          <fieldset class="missions-list">
+            <legend>Missões de hoje</legend>
+            <label class="mission-item" for="mission-water">
+              <input id="mission-water" type="checkbox" data-mission-points="20">
+              <span>Regar plantas da varanda</span>
+              <strong>+20 pts</strong>
+            </label>
+            <label class="mission-item" for="mission-flower">
+              <input id="mission-flower" type="checkbox" data-mission-points="30">
+              <span>Fotografar uma flor</span>
+              <strong>+30 pts</strong>
+            </label>
+          </fieldset>
+        </section>
+      </section>
     </section>
 
     <!-- Secção: O Meu Jardim -->

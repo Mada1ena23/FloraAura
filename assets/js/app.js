@@ -1,6 +1,7 @@
 import { setupNavigation, renderUserPlants, setupModal, setupWateringReminders } from './modules/UI.js';
 import { setupCatalog } from './modules/catalog.js';
 import { setupGardenBackup } from './modules/backup.js';
+import { setupHomeFeatures } from './modules/home-features.js';
 
 let deferredInstallPrompt;
 const installButton = document.getElementById('pwa-install-btn');
@@ -51,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupModal();
   setupWateringReminders();
   setupGardenBackup();
+  setupHomeFeatures();
   renderUserPlants();
   setupCatalog();
 });
