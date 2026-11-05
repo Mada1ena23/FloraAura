@@ -2,7 +2,7 @@ const APP_SCOPE_KEY = new URL(self.registration.scope).pathname
   .replace(/^\/|\/$/g, '')
   .replace(/[^a-zA-Z0-9_-]+/g, '_') || 'root';
 const CACHE_PREFIX = `floraura-${APP_SCOPE_KEY}-`;
-const CACHE_NAME = `${CACHE_PREFIX}v1.0.23`;
+const CACHE_NAME = `${CACHE_PREFIX}v1.0.29`;
 const LEGACY_CACHES = [
   'floraura-v1.0.0',
   'floraura-v1.0.1',
@@ -23,6 +23,8 @@ const ASSETS_TO_CACHE = [
   'pages/offline.html',
   'assets/css/styles.css',
   'assets/images/logo.svg',
+  'assets/images/icons/icon.svg',
+  'assets/images/plant-placeholder.svg',
   'assets/images/icons/icon-192x192.png',
   'assets/images/icons/icon-512x512.png',
   'assets/js/app.js',
@@ -85,12 +87,15 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const requestUrl = new URL(event.request.url);
-  if (requestUrl.origin !== self.location.origin) return;
+  const isAppAsset = requestUrl.origin === self.location.origin
+    && requestUrl.href.startsWith(self.registration.scope);
+  const isPlantPhoto = requestUrl.origin === 'https://images.unsplash.com';
+  if (!isAppAsset && !isPlantPhoto) return;
 
   const networkResponse = fetch(event.request);
   const cacheUpdate = networkResponse
     .then((response) => {
-      if (response.status === 200 && requestUrl.href.startsWith(self.registration.scope)) {
+      if (response.status === 200 || response.type === 'opaque') {
         return caches.open(CACHE_NAME)
           .then((cache) => cache.put(event.request, response.clone()))
           .catch((error) => console.error('[FloraAura SW] Não foi possível guardar a resposta no cache:', error));

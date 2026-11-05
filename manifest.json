@@ -4,6 +4,12 @@
   "description": "Aplicação para registar, consultar e acompanhar cuidados de plantas como rega e luminosidade.",
   "icons": [
     {
+      "src": "assets/images/icons/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    },
+    {
       "src": "assets/images/icons/icon-192x192.png",
       "type": "image/png",
       "sizes": "192x192"
@@ -18,8 +24,8 @@
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",
-  "background_color": "#f6f5ef",
-  "theme_color": "#315c45",
+  "background_color": "#f4f6f1",
+  "theme_color": "#243d30",
   "display": "standalone",
   "orientation": "any"
 }

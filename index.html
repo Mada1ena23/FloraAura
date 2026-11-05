@@ -7,7 +7,7 @@
   
   <!-- Manifest & Meta PWA -->
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#315c45">
+  <meta name="theme-color" content="#243d30">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="FloraAura">
@@ -28,14 +28,15 @@
 
   <!-- Navegação Principal -->
   <nav class="app-nav" aria-label="Navegação principal">
-    <button class="nav-btn active" data-target="meu-jardim" aria-controls="meu-jardim" aria-current="page">Meu Jardim</button>
+    <button class="nav-btn active" data-target="inicio" aria-controls="inicio" aria-current="page">Início</button>
     <button class="nav-btn" data-target="catalogo" aria-controls="catalogo">Catálogo</button>
+    <button class="nav-btn" data-target="meu-jardim" aria-controls="meu-jardim">O meu jardim</button>
   </nav>
 
   <!-- Conteúdo Principal -->
   <main class="app-content">
-    <!-- Secção: O Meu Jardim -->
-    <section id="meu-jardim" class="tab-content active">
+    <!-- Secção: Início -->
+    <section id="inicio" class="tab-content active" aria-labelledby="welcome-title">
       <section class="welcome-panel" aria-labelledby="welcome-title">
         <div class="welcome-copy">
           <p class="eyebrow">O teu jardim</p>
@@ -64,10 +65,15 @@
           </div>
         </div>
       </section>
+    </section>
 
+    <!-- Secção: O Meu Jardim -->
+    <section id="meu-jardim" class="tab-content" aria-labelledby="garden-title">
       <div class="section-header">
         <div>
-          <h2>As minhas plantas</h2>
+          <p class="eyebrow">A tua coleção</p>
+          <h2 id="garden-title">O meu jardim</h2>
+          <p class="garden-intro">Acompanha as tuas plantas e organiza os cuidados de cada dia.</p>
         </div>
         <button id="btn-add-plant" class="btn-primary" type="button"><span aria-hidden="true">＋</span> Adicionar</button>
       </div>
@@ -83,9 +89,10 @@
         </div>
         <p class="agenda-description">Os avisos aparecem aqui quando uma rega estiver prevista.</p>
         <div class="watering-notification-controls">
-          <p id="watering-notification-status" role="status" aria-live="polite">Recebe avisos do navegador quando uma rega vencer.</p>
+          <p id="watering-notification-status" role="status" aria-live="polite">Ativa os avisos do navegador quando uma rega vencer.</p>
           <button id="enable-watering-notifications" class="btn-secondary" type="button">Ativar notificações</button>
         </div>
+        <p class="form-hint">A aplicação verifica as regas enquanto está aberta e quando regressas a ela. Não consegue agendar notificações com a aplicação fechada.</p>
         <div id="watering-reminders" aria-live="polite"></div>
         <div id="watering-agenda" aria-live="polite">
           <p class="agenda-empty">A carregar a agenda…</p>
@@ -234,7 +241,7 @@
 
       <label for="plant-next-watering">Próxima rega (opcional)</label>
       <input type="date" id="plant-next-watering">
-      <p class="form-hint">A data é um lembrete local, não uma notificação automática.</p>
+      <p class="form-hint">A data é um lembrete local. As regas só são verificadas enquanto a aplicação está aberta; não há notificações agendadas com a aplicação fechada.</p>
 
       <div class="modal-actions">
         <button type="button" id="btn-cancel" class="btn-secondary">Cancelar</button>

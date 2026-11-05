@@ -61,3 +61,7 @@ export function getPlantPhotoUrl(plant) {
 
   return `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=900&q=80`;
 }
+
+export function getPlantPhotoFallbackUrl() {
+  return new URL('../../images/plant-placeholder.svg', import.meta.url).href;
+}

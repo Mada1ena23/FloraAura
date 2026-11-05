@@ -1,6 +1,6 @@
 import { getAllPlants, addPlant, updatePlant, deletePlant } from '../db.js';
 import { PLANT_CATALOG } from './catalog-data.js';
-import { getPlantPhotoUrl } from './plant-images.js';
+import { getPlantPhotoFallbackUrl, getPlantPhotoUrl } from './plant-images.js';
 
 const WATERING_NOTIFICATIONS_KEY = 'floraura-watering-notifications-v1';
 const CATALOG_WATER_INTERVALS = new Map(
@@ -291,12 +291,16 @@ function createPlantCard(plant) {
   const cover = document.createElement('div');
   cover.className = 'plant-cover';
 
-  const photo = document.createElement('div');
+  const photo = document.createElement('img');
   photo.className = 'plant-photo';
   photo.setAttribute('aria-hidden', 'true');
-  photo.style.backgroundImage = `linear-gradient(180deg, rgba(26, 42, 34, 0.05) 35%, rgba(12, 25, 21, 0.72)), url("${getPlantPhotoUrl(plant)}")`;
-  photo.style.backgroundSize = 'cover';
-  photo.style.backgroundPosition = 'center';
+  photo.src = getPlantPhotoUrl(plant);
+  photo.alt = '';
+  photo.loading = 'lazy';
+  photo.decoding = 'async';
+  photo.addEventListener('error', () => {
+    photo.src = getPlantPhotoFallbackUrl();
+  }, { once: true });
 
   const state = getPlantStatusState(plant);
   const badge = document.createElement('span');

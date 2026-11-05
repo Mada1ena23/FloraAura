@@ -1,7 +1,7 @@
 import { addPlant, getFavoriteSpecies, toggleFavoriteSpecies } from '../db.js';
 import { PLANT_CATALOG } from './catalog-data.js';
 import { renderUserPlants } from './UI.js';
-import { getPlantPhotoUrl } from './plant-images.js';
+import { getPlantPhotoFallbackUrl, getPlantPhotoUrl } from './plant-images.js';
 
 const CATALOG_STORAGE_KEY = 'floraura-catalog-v1';
 let favoriteIds = new Set();
@@ -146,10 +146,12 @@ function createCatalogCard(plant, favorites) {
   const photo = document.createElement('img');
   photo.className = 'species-photo';
   photo.src = getPlantPhotoUrl(plant);
-  photo.alt = `Fotografia de ${plant.name}`;
+  photo.alt = `Imagem de ${plant.name}`;
   photo.loading = 'lazy';
   photo.decoding = 'async';
-  photo.addEventListener('error', () => photo.remove(), { once: true });
+  photo.addEventListener('error', () => {
+    photo.src = getPlantPhotoFallbackUrl();
+  }, { once: true });
   artwork.append(photo);
   artwork.append(createFavoriteButton(plant, favorites));
 

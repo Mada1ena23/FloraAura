@@ -1,18 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <defs>
-    <linearGradient id="background" x1="9" y1="5" x2="56" y2="59" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#426B50"/>
-      <stop offset="1" stop-color="#203D30"/>
-    </linearGradient>
-    <linearGradient id="leaf" x1="22" y1="21" x2="44" y2="46" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F0DCA7"/>
-      <stop offset="1" stop-color="#D4B878"/>
-    </linearGradient>
-  </defs>
-  <circle cx="32" cy="32" r="30" fill="url(#background)"/>
-  <circle cx="32" cy="32" r="27.75" stroke="#FFFDF6" stroke-opacity=".28" stroke-width=".7"/>
-  <path d="M19.1 45.6c.8-10.7 7.9-19.2 19.6-23.8 1.1 10.3-3.6 20.4-13.8 24.2-1.8.7-3.8.5-5.8-.4Z" fill="url(#leaf)"/>
-  <path d="M29.3 42.6c-.2-9.1 4.2-17.1 13.1-22.8 2.2 8.8-.4 17.8-8.2 22.7-1.5.9-3.2 1-4.9.1Z" fill="#FFFDF6" fill-opacity=".94"/>
-  <path d="M21.4 44.2c6.8-7.3 13.4-13.5 21-19.4" stroke="#71856C" stroke-linecap="round" stroke-width=".9"/>
-  <path d="M27.2 51.2h11.5" stroke="#D4B878" stroke-linecap="round" stroke-width="2.2"/>
+  <circle cx="32" cy="32" r="30" fill="#244432"/>
+  <path d="M13 48C14 30 25 15 47 8c5 21-4 39-22 46-5 2-9 0-12-6Z" fill="#F7F5E9"/>
+  <path d="M19 44c8-10 16-18 25-26" stroke="#D8BB78" stroke-linecap="round" stroke-width="2.8"/>
 </svg>
