@@ -2,6 +2,8 @@ import { setupNavigation, renderUserPlants, setupModal, setupWateringReminders }
 import { setupCatalog } from './modules/catalog.js';
 import { setupGardenBackup } from './modules/backup.js';
 import { setupHomeFeatures } from './modules/home-features.js';
+import { setupAuthentication } from './modules/authentication.js';
+import { watchUserPlants } from './db.js';
 
 let deferredInstallPrompt;
 const installButton = document.getElementById('pwa-install-btn');
@@ -48,11 +50,26 @@ if ('serviceWorker' in navigator) {
 
 // Inicialização da Aplicação
 document.addEventListener('DOMContentLoaded', () => {
-  setupNavigation();
-  setupModal();
-  setupWateringReminders();
-  setupGardenBackup();
-  setupHomeFeatures();
-  renderUserPlants();
-  setupCatalog();
+  setupAuthentication(() => {
+    setupNavigation();
+    setupModal();
+    setupWateringReminders();
+    setupGardenBackup();
+    setupHomeFeatures();
+    watchUserPlants((plants) => {
+      void renderUserPlants(plants);
+    }, (error) => {
+      console.error('Erro ao sincronizar plantas com o Firestore:', error);
+      const container = document.getElementById('user-plants-grid');
+      if (container) {
+        const message = document.createElement('p');
+        message.className = 'empty-state error-state';
+        message.setAttribute('role', 'alert');
+        message.textContent = 'A sincronização com o Firestore falhou. Verifica a ligação e tenta atualizar a página.';
+        container.replaceChildren(message);
+      }
+    });
+    void renderUserPlants();
+    void setupCatalog();
+  });
 });

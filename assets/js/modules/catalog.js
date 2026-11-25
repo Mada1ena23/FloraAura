@@ -1,9 +1,14 @@
-import { addPlant, getFavoriteSpecies, toggleFavoriteSpecies } from '../db.js';
+import {
+  addPlant,
+  getCatalogState,
+  getFavoriteSpecies,
+  saveCatalogState,
+  toggleFavoriteSpecies
+} from '../db.js';
 import { PLANT_CATALOG } from './catalog-data.js';
 import { renderUserPlants } from './UI.js';
 import { getPlantPhotoFallbackUrl, getPlantPhotoUrl } from './plant-images.js';
 
-const CATALOG_STORAGE_KEY = 'floraura-catalog-v1';
 let favoriteIds = new Set();
 let catalogOverrides = [];
 let hiddenCatalogIds = new Set();
@@ -41,24 +46,6 @@ function createFavoriteButton(plant, favorites) {
   });
 
   return button;
-}
-
-function readCatalogState() {
-  const stored = localStorage.getItem(CATALOG_STORAGE_KEY);
-  if (stored === null) return { plants: [], hiddenIds: [] };
-
-  const state = JSON.parse(stored);
-  if (!state || !Array.isArray(state.plants) || !Array.isArray(state.hiddenIds)) {
-    throw new Error('O catálogo guardado tem um formato inválido.');
-  }
-  return state;
-}
-
-function saveCatalogState() {
-  localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify({
-    plants: catalogOverrides,
-    hiddenIds: [...hiddenCatalogIds]
-  }));
 }
 
 function getCatalogPlants() {
@@ -106,33 +93,7 @@ function createCatalogManagement(plant) {
   editButton.textContent = 'Editar no catálogo';
   editButton.addEventListener('click', () => openCatalogForm(plant));
 
-  const deleteButton = document.createElement('button');
-  deleteButton.type = 'button';
-  deleteButton.className = 'btn-secondary delete-plant-btn';
-  deleteButton.textContent = 'Eliminar do catálogo';
-  deleteButton.addEventListener('click', () => {
-    if (!window.confirm(`Queres eliminar ${plant.name} do catálogo? As plantas já adicionadas ao teu jardim não serão alteradas.`)) {
-      return;
-    }
-
-    const previousOverrides = catalogOverrides;
-    const previousHiddenIds = hiddenCatalogIds;
-    try {
-      hiddenCatalogIds = new Set(hiddenCatalogIds);
-      hiddenCatalogIds.add(plant.id);
-      catalogOverrides = catalogOverrides.filter((item) => item.id !== plant.id);
-      saveCatalogState();
-      renderCatalog();
-      announceCatalogMessage(`${plant.name} foi eliminada do catálogo.`);
-    } catch (err) {
-      console.error('Erro ao eliminar planta do catálogo:', err);
-      catalogOverrides = previousOverrides;
-      hiddenCatalogIds = previousHiddenIds;
-      announceCatalogMessage('Não foi possível eliminar a planta do catálogo.');
-    }
-  });
-
-  actions.append(editButton, deleteButton);
+  actions.append(editButton);
   details.append(summary, actions);
   return details;
 }
@@ -277,7 +238,7 @@ export async function setupCatalog() {
   }
 
   try {
-    const catalogState = readCatalogState();
+    const catalogState = await getCatalogState();
     catalogOverrides = catalogState.plants;
     hiddenCatalogIds = new Set(catalogState.hiddenIds);
   } catch (err) {
@@ -289,7 +250,7 @@ export async function setupCatalog() {
   document.getElementById('btn-cancel-catalog-plant')?.addEventListener('click', () => {
     document.getElementById('modal-catalog-plant')?.close();
   });
-  document.getElementById('form-catalog-plant')?.addEventListener('submit', (event) => {
+  document.getElementById('form-catalog-plant')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     const formError = document.getElementById('catalog-form-error');
@@ -317,7 +278,10 @@ export async function setupCatalog() {
       hiddenCatalogIds.delete(plant.id);
       catalogOverrides = catalogOverrides.filter((item) => item.id !== plant.id);
       catalogOverrides.push(plant);
-      saveCatalogState();
+      await saveCatalogState({
+        plants: catalogOverrides,
+        hiddenIds: [...hiddenCatalogIds]
+      });
       document.getElementById('modal-catalog-plant')?.close();
       renderCatalog();
       announceCatalogMessage(existingPlant ? `${plant.name} foi atualizada.` : `${plant.name} foi adicionada ao catálogo.`);

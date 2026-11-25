@@ -11,30 +11,57 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="FloraAura">
+  <meta name="application-version" content="1.0.41">
   <link rel="apple-touch-icon" href="./assets/images/icons/icon-192x192.png">
 
   <!-- Estilos -->
   <link rel="stylesheet" href="./assets/css/styles.css">
 </head>
 <body>
+  <section id="auth-panel" class="auth-panel" aria-labelledby="auth-title">
+    <div class="auth-card">
+      <img src="./assets/images/logo.svg" alt="" class="auth-logo">
+      <p class="eyebrow">FloraAura · sincronização</p>
+      <h2 id="auth-title">Entra na tua conta</h2>
+      <p class="auth-description">Inicia sessão para guardar e sincronizar os dados do teu jardim.</p>
+      <form id="auth-form">
+        <label for="auth-email">Email</label>
+        <input id="auth-email" type="email" autocomplete="email" required>
+        <label for="auth-password">Palavra-passe</label>
+        <input id="auth-password" type="password" autocomplete="current-password" minlength="6" required>
+        <p id="auth-status" class="auth-status" role="status" aria-live="polite"></p>
+        <div class="auth-actions">
+          <button id="auth-submit" class="btn-primary" type="submit">Iniciar sessão</button>
+          <button id="auth-mode-toggle" class="btn-secondary" type="button">Criar conta</button>
+        </div>
+      </form>
+      <button id="auth-retry" class="btn-secondary auth-retry" type="button" hidden>Tentar novamente</button>
+    </div>
+  </section>
+
   <!-- Cabeçalho Principal -->
-  <header class="app-header">
+  <header class="app-header" data-auth-required hidden>
     <div class="logo-container">
       <img src="./assets/images/logo.svg" alt="" class="logo">
       <h1>FloraAura</h1>
     </div>
-    <button id="pwa-install-btn" class="btn-install" hidden>Instalar App</button>
+    <div class="header-actions">
+      <span id="account-email" class="account-email"></span>
+      <span id="account-status" class="account-status" role="status" aria-live="polite"></span>
+      <button id="auth-sign-out" class="btn-install" type="button">Terminar sessão</button>
+      <button id="pwa-install-btn" class="btn-install" hidden>Instalar App</button>
+    </div>
   </header>
 
   <!-- Navegação Principal -->
-  <nav class="app-nav" aria-label="Navegação principal">
+  <nav class="app-nav" aria-label="Navegação principal" data-auth-required hidden>
     <button class="nav-btn active" data-target="inicio" aria-controls="inicio" aria-current="page">Início</button>
     <button class="nav-btn" data-target="catalogo" aria-controls="catalogo">Catálogo</button>
     <button class="nav-btn" data-target="meu-jardim" aria-controls="meu-jardim">O meu jardim</button>
   </nav>
 
   <!-- Conteúdo Principal -->
-  <main class="app-content">
+  <main class="app-content" data-auth-required hidden>
     <!-- Secção: Início -->
     <section id="inicio" class="tab-content active" aria-labelledby="welcome-title">
       <section class="welcome-panel" aria-labelledby="welcome-title">
@@ -215,7 +242,7 @@
     </section>
   </main>
 
-  <dialog id="modal-catalog-plant" class="app-modal">
+  <dialog id="modal-catalog-plant" class="app-modal" data-auth-required hidden>
     <form id="form-catalog-plant" method="dialog">
       <p class="eyebrow">Catálogo pessoal</p>
       <h3 id="catalog-form-title">Adicionar planta ao catálogo</h3>
@@ -267,7 +294,7 @@
   </dialog>
 
   <!-- Modal / Formulário para Registar Nova Planta -->
-  <dialog id="modal-add-plant" class="app-modal">
+  <dialog id="modal-add-plant" class="app-modal" data-auth-required hidden>
     <form id="form-plant" method="dialog">
       <p class="eyebrow">O teu jardim</p>
       <h3 id="plant-form-title">Registar Nova Planta</h3>
@@ -309,9 +336,9 @@
     </form>
   </dialog>
 
-  <footer class="app-footer">
+  <footer class="app-footer" data-auth-required hidden>
     <span class="footer-mark" aria-hidden="true">✿</span>
-    <p>FloraAura <span aria-hidden="true">·</span> Cultiva um pouco de verde todos os dias.</p>
+    <p>FloraAura <span aria-hidden="true">·</span> v1.0.41 <span aria-hidden="true">·</span> Cultiva um pouco de verde todos os dias.</p>
   </footer>
 
   <!-- JavaScript Modular -->

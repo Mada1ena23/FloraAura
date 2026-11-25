@@ -741,12 +741,12 @@ export function setupWateringReminders() {
   });
 }
 
-export async function renderUserPlants() {
+export async function renderUserPlants(syncedPlants = null) {
   const container = document.getElementById('user-plants-grid');
   if (!container) return;
 
   try {
-    const plants = await getAllPlants();
+    const plants = syncedPlants ?? await getAllPlants();
     updateGardenSummary(plants);
     renderWateringAgenda(plants);
     await notifyDueWatering(plants);

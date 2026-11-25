@@ -1,11 +1,90 @@
+import {
+  collection,
+  arrayRemove,
+  arrayUnion,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  setDoc,
+  writeBatch
+} from 'https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js';
+import { auth, firestore } from './firebase.js';
+
 const DB_NAME = 'FloraAuraDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'plants';
 const FAVORITES_STORAGE_KEY = 'floraura-favorites-v1';
 const CATALOG_STORAGE_KEY = 'floraura-catalog-v1';
 const WATERING_NOTIFICATIONS_KEY = 'floraura-watering-notifications-v1';
+const MIGRATION_KEY = 'floraura-firebase-migration-v1';
 const BACKUP_FORMAT = 'floraura-backup';
 const BACKUP_VERSION = 1;
+const FIRESTORE_BATCH_SIZE = 450;
+const EMPTY_CATALOG_STATE = { plants: [], hiddenIds: [] };
+
+function getCurrentUser() {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Inicia sessão para aceder aos dados do jardim.');
+  return user;
+}
+
+function isValidPlantId(plantId) {
+  return Number.isSafeInteger(plantId) && plantId > 0
+    || typeof plantId === 'string' && plantId.length > 0 && !plantId.includes('/');
+}
+
+function plantsCollection() {
+  const { uid } = getCurrentUser();
+  return collection(firestore, 'users', uid, 'plants');
+}
+
+function settingsDocument() {
+  const { uid } = getCurrentUser();
+  return doc(firestore, 'users', uid, 'settings', 'app');
+}
+
+function validateCatalogState(state) {
+  if (
+    !state ||
+    typeof state !== 'object' ||
+    !Array.isArray(state.plants) ||
+    !Array.isArray(state.hiddenIds) ||
+    state.hiddenIds.some((id) => typeof id !== 'string') ||
+    state.plants.some((plant) => (
+      !plant ||
+      typeof plant !== 'object' ||
+      typeof plant.id !== 'string' ||
+      typeof plant.name !== 'string' ||
+      !plant.name.trim()
+    ))
+  ) {
+    throw new Error('O catálogo pessoal guardado tem um formato inválido.');
+  }
+  return state;
+}
+
+function validateFavorites(favorites) {
+  if (!Array.isArray(favorites) || favorites.some((id) => typeof id !== 'string')) {
+    throw new Error('Os favoritos guardados têm um formato inválido.');
+  }
+  return favorites;
+}
+
+function normalizeSettings(snapshot) {
+  if (!snapshot.exists()) {
+    return { favorites: [], catalogState: EMPTY_CATALOG_STATE };
+  }
+
+  const data = snapshot.data();
+  return {
+    favorites: data.favorites === undefined ? [] : validateFavorites(data.favorites),
+    catalogState: data.catalogState === undefined
+      ? EMPTY_CATALOG_STATE
+      : validateCatalogState(data.catalogState)
+  };
+}
 
 export function openDatabase() {
   return new Promise((resolve, reject) => {
@@ -27,47 +106,14 @@ export function openDatabase() {
   });
 }
 
-export async function addPlant(plantData) {
-  const db = await openDatabase();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], 'readwrite');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.add(plantData);
-    let plantId;
-
-    request.onsuccess = () => {
-      plantId = request.result;
-    };
-    transaction.oncomplete = () => {
-      db.close();
-      resolve(plantId);
-    };
-    transaction.onerror = () => {
-      db.close();
-      reject(transaction.error || request.error);
-    };
-    transaction.onabort = () => {
-      db.close();
-      reject(transaction.error || request.error);
-    };
-  });
-}
-
-export async function getAllPlants() {
+async function getLocalPlants() {
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], 'readonly');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.getAll();
-    let plants;
-
-    request.onsuccess = () => {
-      plants = request.result;
-    };
-    transaction.oncomplete = () => {
-      db.close();
-      resolve(plants);
-    };
+    const request = transaction.objectStore(STORE_NAME).getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+    transaction.oncomplete = () => db.close();
     transaction.onerror = () => {
       db.close();
       reject(transaction.error || request.error);
@@ -77,81 +123,157 @@ export async function getAllPlants() {
       reject(transaction.error || request.error);
     };
   });
+}
+
+function readLegacyFavorites() {
+  const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
+  if (stored === null) return [];
+  return validateFavorites(JSON.parse(stored));
+}
+
+function readLegacyCatalogState() {
+  const stored = localStorage.getItem(CATALOG_STORAGE_KEY);
+  if (stored === null) return EMPTY_CATALOG_STATE;
+  return validateCatalogState(JSON.parse(stored));
+}
+
+async function commitOperations(operations) {
+  for (let index = 0; index < operations.length; index += FIRESTORE_BATCH_SIZE) {
+    const batch = writeBatch(firestore);
+    operations.slice(index, index + FIRESTORE_BATCH_SIZE).forEach((operation) => {
+      if (operation.type === 'delete') {
+        batch.delete(operation.reference);
+      } else {
+        batch.set(operation.reference, operation.data);
+      }
+    });
+    await batch.commit();
+  }
+}
+
+export async function initializeUserData() {
+  getCurrentUser();
+  const settingsRef = settingsDocument();
+  const migrationNeeded = localStorage.getItem(MIGRATION_KEY) !== 'complete';
+  const [settingsSnapshot, localPlants] = await Promise.all([
+    getDoc(settingsRef),
+    migrationNeeded ? getLocalPlants() : Promise.resolve([])
+  ]);
+  const localFavorites = migrationNeeded ? readLegacyFavorites() : [];
+  const localCatalog = migrationNeeded ? readLegacyCatalogState() : EMPTY_CATALOG_STATE;
+
+  if (!settingsSnapshot.exists()) {
+    await setDoc(settingsRef, {
+      favorites: localFavorites,
+      catalogState: localCatalog
+    });
+  } else {
+    normalizeSettings(settingsSnapshot);
+    const storedSettings = settingsSnapshot.data();
+    const missingPreferences = {};
+    if (storedSettings.favorites === undefined) missingPreferences.favorites = localFavorites;
+    if (storedSettings.catalogState === undefined) missingPreferences.catalogState = localCatalog;
+    if (Object.keys(missingPreferences).length > 0) {
+      await setDoc(settingsRef, missingPreferences, { merge: true });
+    }
+  }
+
+  if (migrationNeeded) {
+    const plantsRef = plantsCollection();
+    const remotePlants = await getDocs(plantsRef);
+    const remoteIds = new Set(remotePlants.docs.map((plant) => plant.id));
+    const migrationOperations = localPlants
+      .filter((plant) => plant && (typeof plant.id === 'number' || typeof plant.id === 'string'))
+      .map((plant) => {
+        const id = `legacy-${plant.id}`;
+        if (remoteIds.has(id)) return null;
+        const reference = doc(plantsRef, id);
+        return {
+          type: 'set',
+          reference,
+          data: { ...plant, id }
+        };
+      })
+      .filter(Boolean);
+    await commitOperations(migrationOperations);
+    localStorage.setItem(MIGRATION_KEY, 'complete');
+  }
+}
+
+export async function addPlant(plantData) {
+  const reference = doc(plantsCollection());
+  const plant = { ...plantData, id: reference.id };
+  await setDoc(reference, plant);
+  return reference.id;
+}
+
+export async function getAllPlants() {
+  const snapshot = await getDocs(plantsCollection());
+  return snapshot.docs
+    .map((plant) => ({ ...plant.data(), id: plant.id }))
+    .sort((left, right) => String(left.createdAt ?? '').localeCompare(String(right.createdAt ?? '')));
+}
+
+export function watchUserPlants(onChange, onError) {
+  return onSnapshot(
+    plantsCollection(),
+    (snapshot) => {
+      const plants = snapshot.docs
+        .map((plant) => ({ ...plant.data(), id: plant.id }))
+        .sort((left, right) => String(left.createdAt ?? '').localeCompare(String(right.createdAt ?? '')));
+      onChange(plants);
+    },
+    onError
+  );
 }
 
 export async function updatePlant(plant) {
-  const db = await openDatabase();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], 'readwrite');
-    const request = transaction.objectStore(STORE_NAME).put(plant);
-
-    transaction.oncomplete = () => {
-      db.close();
-      resolve(request.result);
-    };
-    transaction.onerror = () => {
-      db.close();
-      reject(transaction.error || request.error);
-    };
-    transaction.onabort = () => {
-      db.close();
-      reject(transaction.error || request.error);
-    };
-  });
+  if (!plant || !isValidPlantId(plant.id)) {
+    throw new Error('A planta não tem um identificador válido.');
+  }
+  const reference = doc(plantsCollection(), String(plant.id));
+  await setDoc(reference, { ...plant, id: String(plant.id) });
+  return plant.id;
 }
 
 export async function deletePlant(plantId) {
-  const db = await openDatabase();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], 'readwrite');
-    const request = transaction.objectStore(STORE_NAME).delete(plantId);
-
-    transaction.oncomplete = () => {
-      db.close();
-      resolve();
-    };
-    transaction.onerror = () => {
-      db.close();
-      reject(transaction.error || request.error);
-    };
-    transaction.onabort = () => {
-      db.close();
-      reject(transaction.error || request.error);
-    };
-  });
-}
-
-function readFavorites() {
-  const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
-  if (stored === null) return [];
-
-  const favorites = JSON.parse(stored);
-  if (!Array.isArray(favorites) || favorites.some((id) => typeof id !== 'string')) {
-    throw new Error('Os favoritos guardados têm um formato inválido.');
+  if (!isValidPlantId(plantId)) {
+    throw new Error('A planta não tem um identificador válido.');
   }
-  return favorites;
+  await deleteDoc(doc(plantsCollection(), String(plantId)));
 }
 
 export async function getFavoriteSpecies() {
-  return readFavorites();
+  const snapshot = await getDoc(settingsDocument());
+  return normalizeSettings(snapshot).favorites;
 }
 
 export async function toggleFavoriteSpecies(speciesId) {
-  const favorites = new Set(readFavorites());
-  const isFavorite = !favorites.has(speciesId);
-  if (isFavorite) {
-    favorites.add(speciesId);
-  } else {
-    favorites.delete(speciesId);
-  }
-  localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify([...favorites]));
-  return isFavorite;
+  const reference = settingsDocument();
+  const snapshot = await getDoc(reference);
+  const nextState = !normalizeSettings(snapshot).favorites.includes(speciesId);
+  await setDoc(reference, {
+    favorites: nextState ? arrayUnion(speciesId) : arrayRemove(speciesId)
+  }, { merge: true });
+  return nextState;
+}
+
+export async function getCatalogState() {
+  const snapshot = await getDoc(settingsDocument());
+  return normalizeSettings(snapshot).catalogState;
+}
+
+export async function saveCatalogState(catalogState) {
+  validateCatalogState(catalogState);
+  await setDoc(settingsDocument(), { catalogState }, { merge: true });
 }
 
 export async function exportGardenBackup() {
-  const plants = await getAllPlants();
-  const catalogState = JSON.parse(localStorage.getItem(CATALOG_STORAGE_KEY) ?? '{"plants":[],"hiddenIds":[]}');
-  const favorites = readFavorites();
+  const [plants, favorites, catalogState] = await Promise.all([
+    getAllPlants(),
+    getFavoriteSpecies(),
+    getCatalogState()
+  ]);
   const wateringNotifications = JSON.parse(localStorage.getItem(WATERING_NOTIFICATIONS_KEY) ?? '[]');
 
   return {
@@ -175,42 +297,23 @@ function validateGardenBackup(backup) {
   if (!Array.isArray(backup.plants) || !Array.isArray(backup.favorites)) {
     throw new Error('A cópia de segurança não contém plantas e favoritos válidos.');
   }
-  if (backup.favorites.some((id) => typeof id !== 'string')) {
-    throw new Error('A lista de favoritos da cópia de segurança é inválida.');
-  }
+  validateFavorites(backup.favorites);
   const plantIds = new Set();
   backup.plants.forEach((plant) => {
     if (
       !plant ||
       typeof plant !== 'object' ||
-      !Number.isSafeInteger(plant.id) ||
-      plant.id < 1 ||
+      !isValidPlantId(plant.id) ||
       typeof plant.name !== 'string' ||
       !plant.name.trim() ||
-      plantIds.has(plant.id)
+      plantIds.has(String(plant.id))
     ) {
       throw new Error('A cópia de segurança contém uma planta inválida.');
     }
-    plantIds.add(plant.id);
+    plantIds.add(String(plant.id));
   });
 
-  const catalogState = backup.catalogState;
-  if (
-    !catalogState ||
-    typeof catalogState !== 'object' ||
-    !Array.isArray(catalogState.plants) ||
-    !Array.isArray(catalogState.hiddenIds) ||
-    catalogState.hiddenIds.some((id) => typeof id !== 'string') ||
-    catalogState.plants.some((plant) => (
-      !plant ||
-      typeof plant !== 'object' ||
-      typeof plant.id !== 'string' ||
-      typeof plant.name !== 'string' ||
-      !plant.name.trim()
-    ))
-  ) {
-    throw new Error('O catálogo pessoal da cópia de segurança é inválido.');
-  }
+  validateCatalogState(backup.catalogState);
   if (
     backup.wateringNotifications !== undefined &&
     (!Array.isArray(backup.wateringNotifications) ||
@@ -232,36 +335,32 @@ function restoreLocalStorageValues(previousValues) {
 
 export async function importGardenBackup(backup) {
   validateGardenBackup(backup);
+  const plantsRef = plantsCollection();
+  const existingPlants = await getDocs(plantsRef);
+  const incomingIds = new Set(backup.plants.map((plant) => String(plant.id)));
+  const operations = [
+    ...backup.plants.map((plant) => ({
+      type: 'set',
+      reference: doc(plantsRef, String(plant.id)),
+      data: { ...plant, id: String(plant.id) }
+    })),
+    ...existingPlants.docs
+      .filter((plant) => !incomingIds.has(plant.id))
+      .map((plant) => ({ type: 'delete', reference: plant.ref }))
+  ];
 
-  const preferenceValues = {
-    [FAVORITES_STORAGE_KEY]: JSON.stringify([...new Set(backup.favorites)]),
-    [CATALOG_STORAGE_KEY]: JSON.stringify(backup.catalogState),
-    [WATERING_NOTIFICATIONS_KEY]: JSON.stringify(backup.wateringNotifications ?? [])
-  };
-  const previousValues = Object.fromEntries(
-    Object.keys(preferenceValues).map((key) => [key, localStorage.getItem(key)])
-  );
+  await commitOperations(operations);
+  await setDoc(settingsDocument(), {
+    favorites: [...new Set(backup.favorites)],
+    catalogState: backup.catalogState
+  }, { merge: true });
 
-  const db = await openDatabase();
+  const notificationValue = JSON.stringify(backup.wateringNotifications ?? []);
+  const previousNotificationValue = localStorage.getItem(WATERING_NOTIFICATIONS_KEY);
   try {
-    Object.entries(preferenceValues).forEach(([key, value]) => localStorage.setItem(key, value));
-    await new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORE_NAME], 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      store.clear();
-      backup.plants.forEach((plant) => store.put(plant));
-      transaction.oncomplete = resolve;
-      transaction.onerror = () => reject(transaction.error);
-      transaction.onabort = () => reject(transaction.error || new Error('A importação foi cancelada.'));
-    });
-  } catch (err) {
-    try {
-      restoreLocalStorageValues(previousValues);
-    } catch (restoreError) {
-      console.error('Não foi possível repor as preferências anteriores após falha na importação:', restoreError);
-    }
-    throw err;
-  } finally {
-    db.close();
+    localStorage.setItem(WATERING_NOTIFICATIONS_KEY, notificationValue);
+  } catch (error) {
+    restoreLocalStorageValues({ [WATERING_NOTIFICATIONS_KEY]: previousNotificationValue });
+    throw error;
   }
 }

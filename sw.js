@@ -2,7 +2,7 @@ const APP_SCOPE_KEY = new URL(self.registration.scope).pathname
   .replace(/^\/|\/$/g, '')
   .replace(/[^a-zA-Z0-9_-]+/g, '_') || 'root';
 const CACHE_PREFIX = `floraura-${APP_SCOPE_KEY}-`;
-const CACHE_NAME = `${CACHE_PREFIX}v1.0.40`;
+const CACHE_NAME = `${CACHE_PREFIX}v1.0.41`;
 const LEGACY_CACHES = [
   'floraura-v1.0.0',
   'floraura-v1.0.1',
@@ -29,14 +29,19 @@ const ASSETS_TO_CACHE = [
   'assets/images/icons/icon-512x512.png',
   'assets/images/welcome-flowers.jpg',
   'assets/js/app.js',
+  'assets/js/firebase.js',
   'assets/js/db.js',
+  'assets/js/modules/authentication.js',
   'assets/js/modules/UI.js',
   'assets/js/modules/catalog.js',
   'assets/js/modules/catalog-data.js',
   'assets/js/modules/plant-images.js',
   'assets/js/modules/home-features.js',
   'assets/js/modules/backup.js',
-  'manifest.json'
+  'manifest.json',
+  'https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js',
+  'https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js'
 ].map(appAsset);
 
 // Instalação do Service Worker e Caching dos Ficheiros
@@ -92,7 +97,9 @@ self.addEventListener('fetch', (event) => {
   const isAppAsset = requestUrl.origin === self.location.origin
     && requestUrl.href.startsWith(self.registration.scope);
   const isPlantPhoto = requestUrl.origin === 'https://images.unsplash.com';
-  if (!isAppAsset && !isPlantPhoto) return;
+  const isFirebaseSdk = requestUrl.origin === 'https://www.gstatic.com'
+    && requestUrl.pathname.startsWith('/firebasejs/13.4.0/');
+  if (!isAppAsset && !isPlantPhoto && !isFirebaseSdk) return;
 
   const networkResponse = fetch(event.request);
   const cacheUpdate = networkResponse
