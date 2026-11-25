@@ -5,7 +5,7 @@ A aplicação usa Firebase Authentication (email/palavra-passe) e Cloud Firestor
 ## Ativar os serviços
 
 1. Na Firebase Console, abre o projeto `floraaura-6d700`.
-2. Em **Authentication → Sign-in method**, ativa **Email/Password**.
+2. Em **Authentication → Sign-in method**, ativa **Email/Password** e **Google**.
 3. Em **Firestore Database**, cria a base de dados e escolhe a região mais próxima dos utilizadores.
 4. Em **Firestore Database → Rules**, publica o conteúdo de [`firestore.rules`](./firestore.rules).
 5. Em **Authentication → Settings → Authorized domains**, confirma que o domínio usado para testar a aplicação está permitido (por exemplo, `localhost`).

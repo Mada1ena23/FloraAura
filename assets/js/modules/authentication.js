@@ -1,7 +1,9 @@
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut
 } from 'https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js';
 import { auth } from '../firebase.js';
@@ -19,9 +21,16 @@ function getAuthErrorMessage(error) {
     case 'auth/weak-password':
       return 'A palavra-passe deve ter pelo menos 6 caracteres.';
     case 'auth/operation-not-allowed':
-      return 'Ativa o método Email/Password nas definições de Authentication do Firebase.';
+      return 'Ativa o método de autenticação nas definições de Authentication do Firebase.';
     case 'auth/unauthorized-domain':
       return 'Adiciona o domínio desta aplicação à lista de domínios autorizados do Firebase.';
+    case 'auth/popup-closed-by-user':
+    case 'auth/cancelled-popup-request':
+      return 'O início de sessão com Google foi cancelado.';
+    case 'auth/popup-blocked':
+      return 'O navegador bloqueou a janela de início de sessão. Permite pop-ups e tenta novamente.';
+    case 'auth/account-exists-with-different-credential':
+      return 'Já existe uma conta com este email. Inicia sessão com o método usado anteriormente.';
     case 'auth/too-many-requests':
       return 'Foram feitas demasiadas tentativas. Tenta novamente mais tarde.';
     case 'auth/network-request-failed':
@@ -46,6 +55,7 @@ export function setupAuthentication(onAuthenticated) {
   const description = document.querySelector('.auth-description');
   const submitButton = document.getElementById('auth-submit');
   const modeButton = document.getElementById('auth-mode-toggle');
+  const googleButton = document.getElementById('auth-google');
   const retryButton = document.getElementById('auth-retry');
   const status = document.getElementById('auth-status');
   const appElements = document.querySelectorAll('[data-auth-required]');
@@ -107,6 +117,7 @@ export function setupAuthentication(onAuthenticated) {
     event.preventDefault();
     submitButton.disabled = true;
     modeButton.disabled = true;
+    if (googleButton) googleButton.disabled = true;
     status.textContent = isCreatingAccount ? 'A criar a conta…' : 'A iniciar sessão…';
     try {
       if (isCreatingAccount) {
@@ -120,6 +131,24 @@ export function setupAuthentication(onAuthenticated) {
     } finally {
       submitButton.disabled = false;
       modeButton.disabled = false;
+      if (googleButton) googleButton.disabled = false;
+    }
+  });
+
+  googleButton?.addEventListener('click', async () => {
+    submitButton.disabled = true;
+    modeButton.disabled = true;
+    googleButton.disabled = true;
+    status.textContent = 'A ligar à Google…';
+    try {
+      await signInWithPopup(auth, new GoogleAuthProvider());
+    } catch (error) {
+      console.error('Erro ao iniciar sessão com Google:', error);
+      status.textContent = getAuthErrorMessage(error);
+    } finally {
+      submitButton.disabled = false;
+      modeButton.disabled = false;
+      googleButton.disabled = false;
     }
   });
 
