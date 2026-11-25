@@ -1954,10 +1954,17 @@ body {
 }
 
 .auth-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
   display: grid;
-  min-height: calc(100vh - 3rem);
+  min-height: 100vh;
+  overflow-y: auto;
   place-items: center;
   padding: 1.5rem;
+  background:
+    linear-gradient(120deg, rgba(24, 45, 34, 0.58), rgba(24, 45, 34, 0.2)),
+    url("../images/welcome-flowers.jpg") center / cover no-repeat;
 }
 
 .auth-card {
@@ -2125,7 +2132,7 @@ body {
 
 @media (max-width: 600px) {
   .auth-panel {
-    min-height: calc(100vh - 1rem);
+    min-height: 100vh;
     padding: 0.75rem;
   }
 
