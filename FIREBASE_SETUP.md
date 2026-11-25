@@ -10,7 +10,8 @@ A aplicação usa Firebase Authentication (email/palavra-passe) e Cloud Firestor
 4. Em **Firestore Database → Rules**, publica o conteúdo de [`firestore.rules`](./firestore.rules).
 5. Em **Authentication → Settings → Authorized domains**, confirma que o domínio usado para testar a aplicação está permitido (por exemplo, `localhost`).
 6. Abre a aplicação por HTTPS ou por um servidor local. A ligação não funciona de forma fiável ao abrir `index.html` diretamente como `file://`.
-7. Usa **Criar conta** na página de entrada. Cada conta acede apenas aos documentos em `users/{uid}`.
+7. Usa **Criar conta** na página de entrada. A palavra-passe tem de ter pelo menos 6 caracteres e ser confirmada. O link de recuperação é enviado pelo Firebase Authentication.
+8. Cada conta acede apenas aos documentos em `users/{uid}`.
 
 Os dados antigos guardados no navegador são importados para a primeira conta que iniciar sessão nesse navegador. Os registos do jardim, favoritos e catálogo pessoal ficam no Firestore; as preferências de notificações de rega continuam locais ao dispositivo.
 

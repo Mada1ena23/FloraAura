@@ -2017,9 +2017,33 @@ body {
   font-size: 0.9rem;
 }
 
-.auth-status:not(:empty) {
+.auth-status--error {
   color: #9b3430;
   font-weight: 600;
+}
+
+.auth-status--success {
+  color: var(--primary-strong);
+  font-weight: 600;
+}
+
+.auth-password-reset {
+  align-self: flex-end;
+  min-height: auto;
+  border: 0;
+  background: transparent;
+  padding: 0.1rem 0;
+  color: var(--primary-strong);
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.auth-password-reset:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .auth-actions {
